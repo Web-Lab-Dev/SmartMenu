@@ -15,6 +15,7 @@ import { ReviewModal } from '@/components/client/ReviewModal';
 import { RestaurantService } from '@/services/RestaurantService';
 import { InternalReviewService } from '@/services/InternalReviewService';
 import { OrderService } from '@/services/OrderService';
+import { WaiterCallService } from '@/services/WaiterCallService';
 import { useCartStore } from '@/lib/store';
 import { useMenuData } from '@/hooks/useMenuData';
 import { getOrCreateCustomerSessionId } from '@/lib/utils';
@@ -173,7 +174,25 @@ export default function MenuPage({ params: paramsPromise }: PageProps) {
   // Get all products (flattened from categories)
   const allProducts = categoriesWithItems.flatMap((cat) => cat.items);
 
-  // Call waiter removed - feature disabled client-side
+  // Handle call waiter - Send request to admin
+  const handleCallWaiter = async () => {
+    if (!actualRestaurantId) {
+      toast.error('Erreur: Restaurant non trouvé');
+      return;
+    }
+
+    try {
+      await WaiterCallService.createCall(
+        actualRestaurantId,
+        tableId,
+        `Table ${tableId}`
+      );
+      toast.success('Un serveur arrive à votre table ! 🔔');
+    } catch (error) {
+      console.error('[Menu] Error calling waiter:', error);
+      toast.error('Erreur lors de l\'appel du serveur');
+    }
+  };
 
   // Handle view cart - Opens cart drawer
   const handleViewCart = () => {
@@ -241,6 +260,7 @@ export default function MenuPage({ params: paramsPromise }: PageProps) {
         restaurantId={actualRestaurantId || undefined}
         tableId={tableId}
         logo={restaurant?.branding?.logoUrl || restaurant?.branding?.logo}
+        onCallWaiter={handleCallWaiter}
         products={allProducts}
       >
         {/* Category Navigation (Horizontal Pills) */}

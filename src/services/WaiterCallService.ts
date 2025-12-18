@@ -1,0 +1,166 @@
+// ========================================
+// Waiter Call Service
+// ========================================
+// Manages waiter call requests from customers
+
+import {
+  collection,
+  addDoc,
+  query,
+  where,
+  getDocs,
+  updateDoc,
+  doc,
+  onSnapshot,
+  orderBy,
+  Timestamp,
+  deleteDoc
+} from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+
+export interface WaiterCall {
+  id: string;
+  restaurantId: string;
+  tableId: string;
+  tableLabelString: string;
+  status: 'pending' | 'acknowledged' | 'completed';
+  createdAt: Date;
+  acknowledgedAt?: Date;
+  completedAt?: Date;
+}
+
+export class WaiterCallService {
+  /**
+   * Create a new waiter call request
+   */
+  static async createCall(
+    restaurantId: string,
+    tableId: string,
+    tableLabelString: string
+  ): Promise<{ callId: string }> {
+    try {
+      const callData = {
+        restaurantId,
+        tableId,
+        tableLabelString,
+        status: 'pending',
+        createdAt: Timestamp.now(),
+      };
+
+      const docRef = await addDoc(collection(db, 'waiterCalls'), callData);
+
+      console.log('[WaiterCallService] ✅ Call created:', docRef.id);
+
+      return { callId: docRef.id };
+    } catch (error) {
+      console.error('[WaiterCallService] ❌ Error creating call:', error);
+      throw new Error('Failed to call waiter');
+    }
+  }
+
+  /**
+   * Subscribe to pending waiter calls for a restaurant (real-time)
+   */
+  static subscribeToRestaurantCalls(
+    restaurantId: string,
+    onCallsUpdate: (calls: WaiterCall[]) => void
+  ): () => void {
+    const q = query(
+      collection(db, 'waiterCalls'),
+      where('restaurantId', '==', restaurantId),
+      where('status', 'in', ['pending', 'acknowledged']),
+      orderBy('createdAt', 'desc')
+    );
+
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const calls: WaiterCall[] = snapshot.docs.map((doc) => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            restaurantId: data.restaurantId,
+            tableId: data.tableId,
+            tableLabelString: data.tableLabelString,
+            status: data.status,
+            createdAt: data.createdAt?.toDate() || new Date(),
+            acknowledgedAt: data.acknowledgedAt?.toDate(),
+            completedAt: data.completedAt?.toDate(),
+          };
+        });
+
+        onCallsUpdate(calls);
+      },
+      (error) => {
+        console.error('[WaiterCallService] ❌ Error subscribing to calls:', error);
+      }
+    );
+
+    return unsubscribe;
+  }
+
+  /**
+   * Acknowledge a waiter call (admin saw it)
+   */
+  static async acknowledgeCall(callId: string): Promise<void> {
+    try {
+      const callRef = doc(db, 'waiterCalls', callId);
+      await updateDoc(callRef, {
+        status: 'acknowledged',
+        acknowledgedAt: Timestamp.now(),
+      });
+
+      console.log('[WaiterCallService] ✅ Call acknowledged:', callId);
+    } catch (error) {
+      console.error('[WaiterCallService] ❌ Error acknowledging call:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Complete a waiter call (served)
+   */
+  static async completeCall(callId: string): Promise<void> {
+    try {
+      const callRef = doc(db, 'waiterCalls', callId);
+      await updateDoc(callRef, {
+        status: 'completed',
+        completedAt: Timestamp.now(),
+      });
+
+      console.log('[WaiterCallService] ✅ Call completed:', callId);
+
+      // Delete completed calls after 5 seconds
+      setTimeout(async () => {
+        try {
+          await deleteDoc(callRef);
+          console.log('[WaiterCallService] 🗑️ Deleted completed call:', callId);
+        } catch (error) {
+          console.error('[WaiterCallService] ❌ Error deleting call:', error);
+        }
+      }, 5000);
+    } catch (error) {
+      console.error('[WaiterCallService] ❌ Error completing call:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get pending calls count for a restaurant
+   */
+  static async getPendingCallsCount(restaurantId: string): Promise<number> {
+    try {
+      const q = query(
+        collection(db, 'waiterCalls'),
+        where('restaurantId', '==', restaurantId),
+        where('status', '==', 'pending')
+      );
+
+      const snapshot = await getDocs(q);
+      return snapshot.size;
+    } catch (error) {
+      console.error('[WaiterCallService] ❌ Error getting pending calls count:', error);
+      return 0;
+    }
+  }
+}
