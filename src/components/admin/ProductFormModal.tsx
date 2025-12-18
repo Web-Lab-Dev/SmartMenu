@@ -31,6 +31,7 @@ export default function ProductFormModal({
   const [categoryId, setCategoryId] = useState('');
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [existingImages, setExistingImages] = useState<string[]>([]);
+  const [keptExistingImages, setKeptExistingImages] = useState<string[]>([]); // NEW: Track which existing images to keep
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const isEditMode = !!product;
@@ -38,11 +39,13 @@ export default function ProductFormModal({
   // Initialize form when product changes
   useEffect(() => {
     if (product) {
+      const images = getProductImages(product);
       setName(product.name);
       setDescription(product.description || '');
       setPrice(product.price.toString());
       setCategoryId(product.categoryId);
-      setExistingImages(getProductImages(product));
+      setExistingImages(images);
+      setKeptExistingImages(images); // Initially keep all existing images
       setImageFiles([]);
     } else {
       resetForm();
@@ -56,6 +59,7 @@ export default function ProductFormModal({
     setCategoryId(categories[0]?.id || '');
     setImageFiles([]);
     setExistingImages([]);
+    setKeptExistingImages([]);
   };
 
   const handleTemplateSelect = (template: MenuTemplate) => {
@@ -98,12 +102,13 @@ export default function ProductFormModal({
 
       if (isEditMode && product) {
         // Edit mode: Update product with multi-images
+        // Use keptExistingImages (images user chose to keep) instead of existingImages (all original images)
         await MenuService.updateProductWithImages(
           restaurantId,
           product.id,
           productData,
           imageFiles,
-          existingImages
+          keptExistingImages
         );
       } else {
         // Create mode: Add product with multi-images
@@ -187,6 +192,7 @@ export default function ProductFormModal({
           <MultiImageUploader
             maxImages={3}
             onImagesChange={setImageFiles}
+            onExistingImagesChange={setKeptExistingImages}
             existingImages={existingImages}
           />
 

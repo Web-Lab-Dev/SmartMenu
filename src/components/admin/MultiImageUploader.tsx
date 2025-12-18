@@ -1,22 +1,32 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Upload, X } from 'lucide-react';
 import Image from 'next/image';
 
 interface MultiImageUploaderProps {
   maxImages?: number;
   onImagesChange: (files: File[]) => void;
+  onExistingImagesChange?: (urls: string[]) => void; // NEW: Track which existing images to keep
   existingImages?: string[]; // For edit mode
 }
 
 export default function MultiImageUploader({
   maxImages = 3,
   onImagesChange,
+  onExistingImagesChange,
   existingImages = [],
 }: MultiImageUploaderProps) {
-  const [imagePreviews, setImagePreviews] = useState<string[]>(existingImages);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [keptExistingImages, setKeptExistingImages] = useState<string[]>([]);
+
+  // Sync with existingImages prop when it changes (e.g., when modal opens with a product)
+  useEffect(() => {
+    setImagePreviews(existingImages);
+    setKeptExistingImages(existingImages);
+    setImageFiles([]);
+  }, [existingImages]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -65,12 +75,27 @@ export default function MultiImageUploader({
   };
 
   const handleRemoveImage = (index: number) => {
-    const newPreviews = imagePreviews.filter((_, i) => i !== index);
-    const newFiles = imageFiles.filter((_, i) => i !== index);
+    const imageToRemove = imagePreviews[index];
 
+    // Check if this is an existing image (URL) or a new preview (data URL)
+    const isExistingImage = imageToRemove && imageToRemove.startsWith('http');
+
+    if (isExistingImage) {
+      // Remove from kept existing images
+      const newKeptImages = keptExistingImages.filter((url) => url !== imageToRemove);
+      setKeptExistingImages(newKeptImages);
+      onExistingImagesChange?.(newKeptImages);
+    } else {
+      // Remove from new files
+      const newFileIndex = index - keptExistingImages.length;
+      const newFiles = imageFiles.filter((_, i) => i !== newFileIndex);
+      setImageFiles(newFiles);
+      onImagesChange(newFiles);
+    }
+
+    // Remove from previews
+    const newPreviews = imagePreviews.filter((_, i) => i !== index);
     setImagePreviews(newPreviews);
-    setImageFiles(newFiles);
-    onImagesChange(newFiles);
   };
 
   const canAddMore = imagePreviews.length < maxImages;
