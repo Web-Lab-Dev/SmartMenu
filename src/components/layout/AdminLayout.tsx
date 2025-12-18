@@ -12,6 +12,7 @@ import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { useAuth } from '@/hooks/useAuth';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { InternalReviewService } from '@/services/InternalReviewService';
+import { OrderService } from '@/services/OrderService';
 import {
   LayoutDashboard,
   UtensilsCrossed,
@@ -44,9 +45,9 @@ interface NavItem {
 const navItems: NavItem[] = [
   { href: '/admin', icon: LayoutDashboard, label: 'Dashboard' },
   { href: '/admin/orders', icon: ShoppingBag, label: 'Commandes' },
-  { href: '/admin/reviews', icon: MessageSquare, label: 'Avis Clients' },
   { href: '/admin/menu', icon: UtensilsCrossed, label: 'Menu Editor' },
   { href: '/admin/marketing', icon: Gift, label: 'Marketing' },
+  { href: '/admin/reviews', icon: MessageSquare, label: 'Avis Clients' },
   { href: '/admin/settings', icon: Settings, label: 'Settings' },
 ];
 
@@ -66,6 +67,7 @@ export function AdminLayout({ children, onAIAssistantToggle, isAIAssistantOpen =
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [unreadReviewsCount, setUnreadReviewsCount] = useState(0);
+  const [pendingOrdersCount, setPendingOrdersCount] = useState(0);
 
   // Load unread reviews count
   useEffect(() => {
@@ -85,6 +87,20 @@ export function AdminLayout({ children, onAIAssistantToggle, isAIAssistantOpen =
     // Refresh count every 30 seconds
     const interval = setInterval(loadUnreadCount, 30000);
     return () => clearInterval(interval);
+  }, [restaurantId]);
+
+  // Load pending orders count (real-time)
+  useEffect(() => {
+    if (!restaurantId) return;
+
+    const unsubscribe = OrderService.subscribeToOrders(restaurantId, (orders) => {
+      const pendingCount = orders.filter(
+        (order) => order.status === 'pending_validation' || order.status === 'preparing'
+      ).length;
+      setPendingOrdersCount(pendingCount);
+    });
+
+    return () => unsubscribe();
   }, [restaurantId]);
 
   // Collapse sidebar when AI Assistant opens
@@ -143,7 +159,11 @@ export function AdminLayout({ children, onAIAssistantToggle, isAIAssistantOpen =
             const Icon = item.icon;
             const isActive = pathname === item.href;
             const isReviewsPage = item.href === '/admin/reviews';
-            const showBadge = isReviewsPage && unreadReviewsCount > 0;
+            const isOrdersPage = item.href === '/admin/orders';
+            const reviewBadgeCount = isReviewsPage ? unreadReviewsCount : 0;
+            const orderBadgeCount = isOrdersPage ? pendingOrdersCount : 0;
+            const badgeCount = reviewBadgeCount || orderBadgeCount;
+            const showBadge = badgeCount > 0;
 
             return (
               <Link
@@ -166,14 +186,14 @@ export function AdminLayout({ children, onAIAssistantToggle, isAIAssistantOpen =
                     <span className="flex-1">{item.label}</span>
                     {showBadge && (
                       <span className="px-2 py-0.5 bg-orange-500 text-white text-xs font-bold rounded-full">
-                        {unreadReviewsCount}
+                        {badgeCount}
                       </span>
                     )}
                   </>
                 )}
                 {isSidebarCollapsed && showBadge && (
                   <span className="absolute -top-1 -right-1 w-5 h-5 bg-orange-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
-                    {unreadReviewsCount > 9 ? '9+' : unreadReviewsCount}
+                    {badgeCount > 9 ? '9+' : badgeCount}
                   </span>
                 )}
               </Link>

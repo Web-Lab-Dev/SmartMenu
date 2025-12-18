@@ -173,10 +173,7 @@ export default function MenuPage({ params: paramsPromise }: PageProps) {
   // Get all products (flattened from categories)
   const allProducts = categoriesWithItems.flatMap((cat) => cat.items);
 
-  // Handle call waiter
-  const handleCallWaiter = () => {
-    toast.success('Un serveur arrive à votre table !');
-  };
+  // Call waiter removed - feature disabled client-side
 
   // Handle view cart - Opens cart drawer
   const handleViewCart = () => {
@@ -244,7 +241,6 @@ export default function MenuPage({ params: paramsPromise }: PageProps) {
         restaurantId={actualRestaurantId || undefined}
         tableId={tableId}
         logo={restaurant?.branding?.logoUrl || restaurant?.branding?.logo}
-        onCallWaiter={handleCallWaiter}
         products={allProducts}
       >
         {/* Category Navigation (Horizontal Pills) */}

@@ -86,22 +86,7 @@ export function MobileShell({
               </div>
             </div>
 
-            {/* Call Waiter Button */}
-            {onCallWaiter && (
-              <motion.button
-                onClick={onCallWaiter}
-                className="flex items-center gap-2 px-4 py-2 rounded-full glass-panel touch-feedback"
-                whileTap={{ scale: 0.95 }}
-              >
-                <Bell size={18} style={{ color: 'var(--brand-color)' }} />
-                <span
-                  className="text-sm font-medium hidden sm:inline"
-                  style={{ color: 'var(--brand-color)' }}
-                >
-                  Appeler
-                </span>
-              </motion.button>
-            )}
+            {/* Call Waiter Button - Removed: Only available in admin */}
           </div>
         </div>
       </header>
