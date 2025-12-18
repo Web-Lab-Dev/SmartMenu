@@ -54,6 +54,10 @@ export function CartDrawer({
   const [promoCode, setPromoCode] = useState('');
   const [isVerifyingCoupon, setIsVerifyingCoupon] = useState(false);
 
+  // Collapsible sections state
+  const [showInstructions, setShowInstructions] = useState(false);
+  const [showPromoCode, setShowPromoCode] = useState(false);
+
   const subtotal = getSubtotal();
   const discountAmount = getDiscountAmount();
   const totalAmount = getTotalAmount();
@@ -362,70 +366,107 @@ export function CartDrawer({
             {/* Footer (Fixed) */}
             {!isEmpty && (
               <div className="px-6 py-4 border-t border-gray-200/30 dark:border-gray-700/30 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl">
-                {/* Customer Note */}
-                <div className="mb-4">
-                  <label
-                    htmlFor="customerNote"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                {/* Customer Note - Collapsible */}
+                <div className="mb-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowInstructions(!showInstructions)}
+                    className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                   >
-                    Instructions spéciales (optionnel)
-                  </label>
-                  <textarea
-                    id="customerNote"
-                    value={customerNote}
-                    onChange={(e) => setCustomerNote(e.target.value)}
-                    placeholder="Allergies, préférences, instructions..."
-                    rows={2}
-                    maxLength={500}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-0 resize-none"
-                    style={{ '--tw-ring-color': 'var(--brand-color, #FF4500)' } as React.CSSProperties}
-                  />
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    {customerNote.length}/500 caractères
-                  </p>
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      📝 Instructions spéciales {customerNote && `(${customerNote.length})`}
+                    </span>
+                    <motion.span
+                      animate={{ rotate: showInstructions ? 180 : 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="text-gray-500"
+                    >
+                      ▼
+                    </motion.span>
+                  </button>
+                  {showInstructions && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="mt-2"
+                    >
+                      <textarea
+                        id="customerNote"
+                        value={customerNote}
+                        onChange={(e) => setCustomerNote(e.target.value)}
+                        placeholder="Allergies, préférences, instructions..."
+                        rows={2}
+                        maxLength={500}
+                        className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-0 resize-none text-sm"
+                        style={{ '--tw-ring-color': 'var(--brand-color, #FF4500)' } as React.CSSProperties}
+                      />
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        {customerNote.length}/500 caractères
+                      </p>
+                    </motion.div>
+                  )}
                 </div>
 
-                {/* Promo Code Section */}
+                {/* Promo Code Section - Collapsible */}
                 {!appliedCoupon ? (
-                  <div className="mb-4">
-                    <label
-                      htmlFor="promoCode"
-                      className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                  <div className="mb-3">
+                    <button
+                      type="button"
+                      onClick={() => setShowPromoCode(!showPromoCode)}
+                      className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                     >
-                      Code Promo (optionnel)
-                    </label>
-                    <div className="flex gap-2">
-                      <input
-                        id="promoCode"
-                        type="text"
-                        value={promoCode}
-                        onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
-                        placeholder="PROMO-XXXXX"
-                        disabled={isVerifyingCoupon}
-                        className="flex-1 px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-0 disabled:opacity-50 disabled:cursor-not-allowed font-mono"
-                        style={{ '--tw-ring-color': 'var(--brand-color, #FF4500)' } as React.CSSProperties}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            handleApplyCoupon();
-                          }
-                        }}
-                      />
-                      <button
-                        onClick={handleApplyCoupon}
-                        disabled={isVerifyingCoupon || !promoCode.trim()}
-                        className="px-6 py-3 rounded-xl text-white font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                        style={{
-                          backgroundColor: isVerifyingCoupon || !promoCode.trim() ? '#ccc' : 'var(--brand-color, #FF4500)',
-                        }}
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        🎫 Code Promo
+                      </span>
+                      <motion.span
+                        animate={{ rotate: showPromoCode ? 180 : 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="text-gray-500"
                       >
-                        {isVerifyingCoupon ? (
-                          <Loader2 className="w-5 h-5 animate-spin" strokeWidth={2.5} />
-                        ) : (
-                          <Ticket className="w-5 h-5" strokeWidth={2} />
-                        )}
-                        <span>Appliquer</span>
-                      </button>
-                    </div>
+                        ▼
+                      </motion.span>
+                    </button>
+                    {showPromoCode && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        className="mt-2"
+                      >
+                        <div className="flex gap-2">
+                          <input
+                            id="promoCode"
+                            type="text"
+                            value={promoCode}
+                            onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                            placeholder="PROMO-XXXXX"
+                            disabled={isVerifyingCoupon}
+                            className="flex-1 px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-0 disabled:opacity-50 disabled:cursor-not-allowed font-mono text-sm"
+                            style={{ '--tw-ring-color': 'var(--brand-color, #FF4500)' } as React.CSSProperties}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                handleApplyCoupon();
+                              }
+                            }}
+                          />
+                          <button
+                            onClick={handleApplyCoupon}
+                            disabled={isVerifyingCoupon || !promoCode.trim()}
+                            className="px-4 py-2 rounded-lg text-white font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                            style={{
+                              backgroundColor: isVerifyingCoupon || !promoCode.trim() ? '#ccc' : 'var(--brand-color, #FF4500)',
+                            }}
+                          >
+                            {isVerifyingCoupon ? (
+                              <Loader2 className="w-5 h-5 animate-spin" strokeWidth={2.5} />
+                            ) : (
+                              'Appliquer'
+                            )}
+                          </button>
+                        </div>
+                      </motion.div>
+                    )}
                   </div>
                 ) : (
                   /* Applied Coupon Display */

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, use, Suspense } from 'react';
 import dynamic from 'next/dynamic';
+import { Search, X } from 'lucide-react';
 import { MobileShell } from '@/components/layout/MobileShell';
 import { CategoryNav } from '@/components/menu/CategoryNav';
 import { MenuGrid } from '@/components/menu/MenuGrid';
@@ -65,6 +66,7 @@ export default function MenuPage({ params: paramsPromise }: PageProps) {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
   const [socialCameraOpen, setSocialCameraOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const { setContext } = useCartStore();
   const customerSessionId = getOrCreateCustomerSessionId();
@@ -225,11 +227,34 @@ export default function MenuPage({ params: paramsPromise }: PageProps) {
           </div>
         )}
 
+        {/* Search Bar */}
+        <div className="mt-4">
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Rechercher un plat..."
+              className="w-full pl-12 pr-12 py-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            )}
+          </div>
+        </div>
+
         {/* Single Menu Grid with Category Filtering */}
         <div className="mt-6">
           <MenuGrid
             products={allProducts}
             activeCategory={activeCategory}
+            searchQuery={searchQuery}
             loading={loadingMenu}
           />
         </div>

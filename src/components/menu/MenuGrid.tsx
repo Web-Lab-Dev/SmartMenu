@@ -17,6 +17,7 @@ import { toast } from 'sonner';
 interface MenuGridProps {
   products: Product[];
   activeCategory: string | null;
+  searchQuery?: string;
   loading?: boolean;
 }
 
@@ -48,19 +49,32 @@ const emptyStateVariants = {
  * - Click on any card opens ProductDrawer with full details
  * - Quick add button on cards adds to cart directly
  */
-export function MenuGrid({ products, activeCategory, loading }: MenuGridProps) {
+export function MenuGrid({ products, activeCategory, searchQuery = '', loading }: MenuGridProps) {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const { addItem } = useCartStore();
   const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // ⚡ PERF: Memoize filteredProducts pour éviter recalcul à chaque render
-  const filteredProducts = useMemo(() =>
-    activeCategory
-      ? products.filter((p) => p.categoryId === activeCategory && p.isAvailable)
-      : products.filter((p) => p.isAvailable),
-    [products, activeCategory]
-  );
+  const filteredProducts = useMemo(() => {
+    let filtered = products.filter((p) => p.isAvailable);
+
+    // Apply category filter
+    if (activeCategory) {
+      filtered = filtered.filter((p) => p.categoryId === activeCategory);
+    }
+
+    // Apply search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter((p) =>
+        p.name.toLowerCase().includes(query) ||
+        p.description?.toLowerCase().includes(query)
+      );
+    }
+
+    return filtered;
+  }, [products, activeCategory, searchQuery]);
 
   // ⚡ PERF: Memoize split products
   const heroProducts = useMemo(() => filteredProducts.slice(0, 2), [filteredProducts]);
@@ -125,12 +139,14 @@ export function MenuGrid({ products, activeCategory, loading }: MenuGridProps) {
         animate={emptyStateVariants.animate}
         className="flex flex-col items-center justify-center py-16 text-center"
       >
-        <span className="text-6xl mb-4">🍽️</span>
+        <span className="text-6xl mb-4">{searchQuery ? '🔍' : '🍽️'}</span>
         <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-          Aucun produit disponible
+          {searchQuery ? 'Aucun résultat' : 'Aucun produit disponible'}
         </h3>
         <p className="text-gray-500 dark:text-gray-400">
-          {activeCategory
+          {searchQuery
+            ? `Aucun plat ne correspond à "${searchQuery}"`
+            : activeCategory
             ? 'Aucun produit dans cette catégorie pour le moment'
             : 'Le menu est en cours de préparation'}
         </p>
