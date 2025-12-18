@@ -92,7 +92,9 @@ export function ReviewModal({
       toast.success('Merci pour votre soutien ! 🙏');
       handleClose();
     } else {
-      toast.error('Lien Google Maps non configuré');
+      // Silently close if no URL configured
+      toast.success('Merci pour votre avis ! 🙏');
+      handleClose();
     }
   };
 
@@ -225,25 +227,17 @@ export function ReviewModal({
                 ))}
               </div>
 
-              {googleReviewUrl ? (
-                <>
-                  <button
-                    onClick={handleGoogleReview}
-                    className="w-full py-4 rounded-xl font-semibold text-white flex items-center justify-center gap-2 mb-3 transition-transform hover:scale-[1.02] active:scale-[0.98]"
-                    style={{ backgroundColor: 'var(--brand-color, #FF4500)' }}
-                  >
-                    <ExternalLink className="w-5 h-5" />
-                    Poster sur Google
-                  </button>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
-                    Cela prend 10 secondes et aide énormément notre équipe en cuisine ! 🙏
-                  </p>
-                </>
-              ) : (
-                <p className="text-sm text-gray-500 mb-4">
-                  Lien Google Maps non configuré
-                </p>
-              )}
+              <button
+                onClick={handleGoogleReview}
+                className="w-full py-4 rounded-xl font-semibold text-white flex items-center justify-center gap-2 mb-3 transition-transform hover:scale-[1.02] active:scale-[0.98]"
+                style={{ backgroundColor: 'var(--brand-color, #FF4500)' }}
+              >
+                <ExternalLink className="w-5 h-5" />
+                {googleReviewUrl ? 'Poster sur Google' : 'Merci !'}
+              </button>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
+                Cela prend 10 secondes et aide énormément notre équipe en cuisine ! 🙏
+              </p>
 
               <button
                 onClick={handleClose}

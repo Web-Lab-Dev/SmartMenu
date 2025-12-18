@@ -303,7 +303,7 @@ function CampaignModal({
                 maxLength={VALIDATION_LIMITS.CAMPAIGN_NAME_MAX}
                 required
                 className="w-full px-4 py-2.5 border border-gray-600 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
-                placeholder="Ex: Promotion d'été"
+                placeholder="Ex: Promotion de Noël, Offre Spéciale Ramadan"
               />
             </div>
 
@@ -326,37 +326,62 @@ function CampaignModal({
             </div>
 
             {/* Reward Value */}
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Valeur de la récompense
-                {formData.rewardType === 'percentage' && ' (%)'}
-                {formData.rewardType === 'fixed_amount' && ' (FCFA)'}
-              </label>
-              <input
-                type="number"
-                value={formData.rewardValue}
-                onChange={(e) => setFormData({ ...formData, rewardValue: parseInt(e.target.value) })}
-                min={0}
-                required
-                className="w-full px-4 py-2.5 border border-gray-600 rounded-lg bg-gray-700 text-white focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-              />
-            </div>
+            {formData.rewardType !== 'free_item' && (
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Valeur de la récompense
+                  {formData.rewardType === 'percentage' && ' (%)'}
+                  {formData.rewardType === 'fixed_amount' && ' (FCFA)'}
+                </label>
+                <input
+                  type="number"
+                  value={formData.rewardValue}
+                  onChange={(e) => setFormData({ ...formData, rewardValue: parseInt(e.target.value) })}
+                  min={0}
+                  required
+                  className="w-full px-4 py-2.5 border border-gray-600 rounded-lg bg-gray-700 text-white focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                />
+              </div>
+            )}
+
+            {/* Free Item Name (only for free_item type) */}
+            {formData.rewardType === 'free_item' && (
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Article gratuit
+                </label>
+                <input
+                  type="text"
+                  value={formData.rewardDescription}
+                  onChange={(e) => setFormData({ ...formData, rewardDescription: e.target.value })}
+                  maxLength={VALIDATION_LIMITS.CAMPAIGN_REWARD_DESCRIPTION_MAX}
+                  required
+                  className="w-full px-4 py-2.5 border border-gray-600 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  placeholder="Ex: Coca-Cola, Tiramisu, Café offert"
+                />
+                <p className="text-xs text-gray-400 mt-1">
+                  Nom de l'article qui sera offert gratuitement
+                </p>
+              </div>
+            )}
 
             {/* Reward Description */}
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Description de la récompense
-              </label>
-              <input
-                type="text"
-                value={formData.rewardDescription}
-                onChange={(e) => setFormData({ ...formData, rewardDescription: e.target.value })}
-                maxLength={VALIDATION_LIMITS.CAMPAIGN_REWARD_DESCRIPTION_MAX}
-                required
-                className="w-full px-4 py-2.5 border border-gray-600 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                placeholder="Ex: 10% de réduction sur votre prochaine commande"
-              />
-            </div>
+            {formData.rewardType !== 'free_item' && (
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Description de la récompense
+                </label>
+                <input
+                  type="text"
+                  value={formData.rewardDescription}
+                  onChange={(e) => setFormData({ ...formData, rewardDescription: e.target.value })}
+                  maxLength={VALIDATION_LIMITS.CAMPAIGN_REWARD_DESCRIPTION_MAX}
+                  required
+                  className="w-full px-4 py-2.5 border border-gray-600 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  placeholder="Ex: 10% de réduction sur votre prochaine commande"
+                />
+              </div>
+            )}
 
             {/* Win Probability */}
             <div>
