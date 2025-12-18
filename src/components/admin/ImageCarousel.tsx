@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, memo } from 'react';
+import { useState, memo, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import Image from 'next/image';
 
@@ -8,14 +8,29 @@ interface ImageCarouselProps {
   images: string[];
   alt: string;
   className?: string;
+  autoPlay?: boolean;
+  autoPlayInterval?: number;
 }
 
 function ImageCarouselComponent({
   images,
   alt,
   className = '',
+  autoPlay = true,
+  autoPlayInterval = 3000,
 }: ImageCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
+
+  // Auto-play carousel
+  useEffect(() => {
+    if (!autoPlay || images.length <= 1) return;
+
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+    }, autoPlayInterval);
+
+    return () => clearInterval(interval);
+  }, [autoPlay, autoPlayInterval, images.length]);
 
   if (images.length === 0) {
     return (

@@ -87,6 +87,13 @@ export function AdminLayout({ children, onAIAssistantToggle, isAIAssistantOpen =
     return () => clearInterval(interval);
   }, [restaurantId]);
 
+  // Collapse sidebar when AI Assistant opens
+  useEffect(() => {
+    if (isAIAssistantOpen) {
+      setIsSidebarCollapsed(true);
+    }
+  }, [isAIAssistantOpen]);
+
   const handleLogout = async () => {
     try {
       setIsLoggingOut(true);

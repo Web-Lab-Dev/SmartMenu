@@ -19,21 +19,20 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 /**
- * Formats price in cents to currency string
- * @param cents - Price in cents
+ * Formats price to currency string
+ * @param amount - Price amount in FCFA (not cents)
  * @param currency - Currency code (default: XOF - Franc CFA)
  * @param locale - Locale for formatting (default: fr-FR)
  * @returns Formatted currency string (e.g., "5 000 FCFA")
  *
  * Note: FCFA has no decimal places, so we format whole numbers only
+ * Prices are stored directly in FCFA, not in cents
  */
 export function formatCurrency(
-  cents: number,
+  amount: number,
   currency: string = APP_CONFIG.DEFAULT_CURRENCY,
   locale: string = APP_CONFIG.DEFAULT_LOCALE
 ): string {
-  const amount = cents / 100;
-
   // FCFA (XOF) has no decimal places
   const isFCFA = currency === 'XOF';
 

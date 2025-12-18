@@ -5,7 +5,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Drawer } from 'vaul';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
@@ -42,6 +42,17 @@ export function ProductDrawer({ product, isOpen, onClose }: ProductDrawerProps) 
     ? [product.image]
     : [];
   const hasMultipleImages = images.length > 1;
+
+  // Auto-play carousel
+  useEffect(() => {
+    if (!hasMultipleImages || !isOpen) return;
+
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prev) => (prev + 1) % images.length);
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [hasMultipleImages, images.length, isOpen]);
 
   const handleAddToCart = () => {
     try {
