@@ -5,7 +5,7 @@
 
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import Webcam from 'react-webcam';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -76,6 +76,22 @@ export function SocialCamera({
   const [isGenerating, setIsGenerating] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [showStickers, setShowStickers] = useState(false);
+
+  // Initialiser videoRef depuis webcamRef
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (webcamRef.current && !videoRef.current) {
+        const video = (webcamRef.current as any).video;
+        if (video) {
+          videoRef.current = video;
+          console.log('[SocialCamera] Video ref initialized:', video.videoWidth, 'x', video.videoHeight);
+          clearInterval(interval);
+        }
+      }
+    }, 100);
+
+    return () => clearInterval(interval);
+  }, []);
 
   // Face tracking pour les stickers AR
   const { isLoading: faceLoading, faceDetection, error: faceError } = useFaceTracking({
