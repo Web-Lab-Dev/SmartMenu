@@ -21,6 +21,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Sparkles,
+  ShoppingBag,
+  MessageSquare,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { logger } from '@/lib/logger';
