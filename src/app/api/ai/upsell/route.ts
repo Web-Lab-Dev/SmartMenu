@@ -79,7 +79,7 @@ export async function POST(req: NextRequest) {
 
     // Prepare data for AI
     const cartSummary = cartItems.map(item =>
-      `${item.productName} (x${item.quantity}) - ${(item.unitPrice / 100).toLocaleString()} FCFA`
+      `${item.productName} (x${item.quantity}) - ${item.unitPrice.toLocaleString()} FCFA`
     ).join(', ');
 
     const availableProducts = menuContext
@@ -88,7 +88,7 @@ export async function POST(req: NextRequest) {
         id: product.id,
         name: product.name,
         description: product.description,
-        price: (product.price / 100).toLocaleString(),
+        price: product.price.toLocaleString(),
         tags: product.aiTags.join(', '),
       }));
 

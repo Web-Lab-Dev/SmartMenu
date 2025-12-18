@@ -82,7 +82,7 @@ function CompactCardComponent({ product, onClick, onAddToCart }: CompactCardProp
             className="font-bold text-sm"
             style={{ color: 'var(--brand-color)' }}
           >
-            {(product.price / 100).toLocaleString()} FCFA
+            {product.price.toLocaleString()} FCFA
           </div>
         </div>
 

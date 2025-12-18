@@ -80,7 +80,7 @@ export default function SplitBillPage() {
 
     // Navigate to feedback page (payment would happen here in real app)
     router.push(`/menu/${restaurantId}/${tableId}/feedback`);
-    toast.success(`Paiement de ${(amount / 100).toFixed(2)} € validé !`);
+    toast.success(`Paiement de ${amount.toLocaleString()} FCFA validé !`);
   };
 
   if (loading) {

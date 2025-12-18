@@ -95,7 +95,7 @@ function HeroCardComponent({ product, onClick, onAddToCart, priority = false }: 
             className="font-bold text-lg shrink-0"
             style={{ color: 'var(--brand-color)' }}
           >
-            {(product.price / 100).toLocaleString()} FCFA
+            {product.price.toLocaleString()} FCFA
           </div>
         </div>
 

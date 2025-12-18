@@ -202,7 +202,7 @@ export const registerFormSchema = z.object({
 export const addProductFormSchema = z.object({
   name: z.string().min(1).max(VALIDATION_LIMITS.PRODUCT_NAME_MAX),
   description: z.string().max(VALIDATION_LIMITS.PRODUCT_DESCRIPTION_MAX),
-  price: z.number().positive().transform(val => Math.round(val * 100)), // Convert euros to cents
+  price: z.number().positive(),
   categoryId: z.string().min(1),
   image: z.string().url().optional(),
   preparationTime: z.number().int().positive().optional(),

@@ -76,7 +76,7 @@ function UpsellToastContent({
             </p>
           )}
           <p className="font-bold text-sm mt-1" style={{ color: 'var(--brand-color, #FF4500)' }}>
-            {(product.price / 100).toLocaleString()} FCFA
+            {product.price.toLocaleString()} FCFA
           </p>
         </div>
 

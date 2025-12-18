@@ -65,7 +65,7 @@ export default function ProductFormModal({
   const handleTemplateSelect = (template: MenuTemplate) => {
     setName(template.name);
     setDescription(template.description);
-    setPrice((template.suggestedPrice / 100).toString());
+    setPrice(template.suggestedPrice.toString());
 
     const matchingCategory = categories.find(
       (cat) => cat.name.toLowerCase() === template.category.toLowerCase()
@@ -96,7 +96,7 @@ export default function ProductFormModal({
       const productData = {
         name: name.trim(),
         description: description.trim(),
-        price: priceNum * 100, // Convert to cents
+        price: priceNum,
         categoryId,
       };
 

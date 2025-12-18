@@ -167,7 +167,7 @@ export function ProductDrawer({ product, isOpen, onClose }: ProductDrawerProps) 
                   className="text-3xl font-bold"
                   style={{ color: 'var(--brand-color)' }}
                 >
-                  {(product.price / 100).toLocaleString()} FCFA
+                  {product.price.toLocaleString()} FCFA
                 </div>
               </div>
 
@@ -287,7 +287,7 @@ export function ProductDrawer({ product, isOpen, onClose }: ProductDrawerProps) 
               whileTap={{ scale: 0.98 }}
             >
               <ShoppingCart className="w-6 h-6" />
-              Ajouter au panier - {((product.price / 100) * quantity).toLocaleString()} FCFA
+              Ajouter au panier - {(product.price * quantity).toLocaleString()} FCFA
             </motion.button>
           </div>
         </Drawer.Content>
