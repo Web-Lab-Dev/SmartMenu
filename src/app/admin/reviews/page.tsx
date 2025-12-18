@@ -52,9 +52,14 @@ export default function AdminReviewsPage() {
       try {
         setLoading(true);
 
-        // Load internal reviews
-        const reviewsData = await InternalReviewService.getRestaurantReviews(restaurantId);
-        setReviews(reviewsData);
+        // Load internal reviews (with error handling for empty collections)
+        try {
+          const reviewsData = await InternalReviewService.getRestaurantReviews(restaurantId);
+          setReviews(reviewsData);
+        } catch (reviewError) {
+          console.warn('[AdminReviews] No reviews found or error loading reviews:', reviewError);
+          setReviews([]); // Set empty array if no reviews
+        }
 
         // Load restaurant config for Google Review URL
         const restaurantData = await RestaurantService.getById(restaurantId);
@@ -62,8 +67,8 @@ export default function AdminReviewsPage() {
           setGoogleReviewUrl((restaurantData as any).googleReviewUrl || '');
         }
       } catch (error) {
-        console.error('[AdminReviews] Error loading:', error);
-        toast.error('Erreur lors du chargement');
+        console.error('[AdminReviews] Error loading restaurant data:', error);
+        toast.error('Erreur lors du chargement de la configuration');
       } finally {
         setLoading(false);
       }

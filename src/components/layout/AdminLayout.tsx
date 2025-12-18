@@ -5,12 +5,13 @@
 
 'use client';
 
-import { ReactNode, useState, useMemo, memo } from 'react';
+import { ReactNode, useState, useMemo, memo, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { useAuth } from '@/hooks/useAuth';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { InternalReviewService } from '@/services/InternalReviewService';
 import {
   LayoutDashboard,
   UtensilsCrossed,
@@ -58,12 +59,33 @@ const navItems: NavItem[] = [
  * - AI Assistant panel support
  */
 export function AdminLayout({ children, onAIAssistantToggle, isAIAssistantOpen = false }: AdminLayoutProps) {
-  const { user, loading, isAuthorized } = useAdminAuth();
+  const { user, loading, isAuthorized, restaurantId } = useAdminAuth();
   const { signOut } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [unreadReviewsCount, setUnreadReviewsCount] = useState(0);
+
+  // Load unread reviews count
+  useEffect(() => {
+    if (!restaurantId) return;
+
+    const loadUnreadCount = async () => {
+      try {
+        const count = await InternalReviewService.getUnreadCount(restaurantId);
+        setUnreadReviewsCount(count);
+      } catch (error) {
+        console.error('[AdminLayout] Error loading unread reviews count:', error);
+      }
+    };
+
+    loadUnreadCount();
+
+    // Refresh count every 30 seconds
+    const interval = setInterval(loadUnreadCount, 30000);
+    return () => clearInterval(interval);
+  }, [restaurantId]);
 
   const handleLogout = async () => {
     try {
@@ -113,13 +135,15 @@ export function AdminLayout({ children, onAIAssistantToggle, isAIAssistantOpen =
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.href;
+            const isReviewsPage = item.href === '/admin/reviews';
+            const showBadge = isReviewsPage && unreadReviewsCount > 0;
 
             return (
               <Link
                 key={item.href}
                 href={item.href}
                 className={`
-                  flex items-center gap-3 px-4 py-3 rounded-lg transition-colors
+                  flex items-center gap-3 px-4 py-3 rounded-lg transition-colors relative
                   ${
                     isActive
                       ? 'bg-orange-500/10 text-orange-500 font-medium'
@@ -130,7 +154,21 @@ export function AdminLayout({ children, onAIAssistantToggle, isAIAssistantOpen =
                 title={isSidebarCollapsed ? item.label : undefined}
               >
                 <Icon className="w-5 h-5 shrink-0" />
-                {!isSidebarCollapsed && <span>{item.label}</span>}
+                {!isSidebarCollapsed && (
+                  <>
+                    <span className="flex-1">{item.label}</span>
+                    {showBadge && (
+                      <span className="px-2 py-0.5 bg-orange-500 text-white text-xs font-bold rounded-full">
+                        {unreadReviewsCount}
+                      </span>
+                    )}
+                  </>
+                )}
+                {isSidebarCollapsed && showBadge && (
+                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-orange-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
+                    {unreadReviewsCount > 9 ? '9+' : unreadReviewsCount}
+                  </span>
+                )}
               </Link>
             );
           })}
