@@ -8,23 +8,17 @@
 import { useEffect, useState } from 'react';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { OrderService } from '@/services/OrderService';
-import { InternalReviewService, InternalReview } from '@/services/InternalReviewService';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
-import { TrendingUp, ShoppingBag, Users, UtensilsCrossed, QrCode, Sparkles, Clock, Star, MessageSquare, ChevronRight } from 'lucide-react';
+import { TrendingUp, ShoppingBag, Users, UtensilsCrossed, QrCode, Sparkles } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import type { Order } from '@/types/schema';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
 
 export default function AdminDashboard() {
   const { user, restaurantId, loading: authLoading } = useAdminAuth();
   const [orders, setOrders] = useState<Order[]>([]);
-  const [reviews, setReviews] = useState<InternalReview[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Subscribe to orders
   useEffect(() => {
     if (!restaurantId) {
       setLoading(false);
@@ -40,22 +34,6 @@ export default function AdminDashboard() {
     );
 
     return () => unsubscribe();
-  }, [restaurantId]);
-
-  // Load reviews
-  useEffect(() => {
-    if (!restaurantId) return;
-
-    const loadReviews = async () => {
-      try {
-        const data = await InternalReviewService.getRestaurantReviews(restaurantId);
-        setReviews(data.slice(0, 5)); // Only show last 5
-      } catch (error) {
-        console.error('[Dashboard] Error loading reviews:', error);
-      }
-    };
-
-    loadReviews();
   }, [restaurantId]);
 
   if (authLoading || loading) {
@@ -179,176 +157,34 @@ export default function AdminDashboard() {
           </div>
         </div>
       ) : (
-        /* Activity Summary and Live Sections when there are orders */
-        <>
-          <div className="bg-gray-800 rounded-lg border border-gray-700 p-6">
-            <h3 className="text-xl font-semibold text-white mb-4">Activité du jour</h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="text-center p-4 bg-gray-900 rounded-lg">
-                <p className="text-2xl font-bold text-white">{todayOrders.length}</p>
-                <p className="text-sm text-gray-400">Commandes</p>
-              </div>
-              <div className="text-center p-4 bg-gray-900 rounded-lg">
-                <p className="text-2xl font-bold text-red-400">
-                  {todayOrders.filter((o) => o.status === 'pending_validation').length}
-                </p>
-                <p className="text-sm text-gray-400">En attente</p>
-              </div>
-              <div className="text-center p-4 bg-gray-900 rounded-lg">
-                <p className="text-2xl font-bold text-yellow-400">
-                  {todayOrders.filter((o) => o.status === 'preparing').length}
-                </p>
-                <p className="text-sm text-gray-400">En préparation</p>
-              </div>
-              <div className="text-center p-4 bg-gray-900 rounded-lg">
-                <p className="text-2xl font-bold text-green-400">
-                  {todayOrders.filter((o) => o.status === 'ready' || o.status === 'served').length}
-                </p>
-                <p className="text-sm text-gray-400">Servies</p>
-              </div>
+        /* Activity Summary when there are orders */
+        <div className="bg-gray-800 rounded-lg border border-gray-700 p-6">
+          <h3 className="text-xl font-semibold text-white mb-4">Activité du jour</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="text-center p-4 bg-gray-900 rounded-lg">
+              <p className="text-2xl font-bold text-white">{todayOrders.length}</p>
+              <p className="text-sm text-gray-400">Commandes</p>
+            </div>
+            <div className="text-center p-4 bg-gray-900 rounded-lg">
+              <p className="text-2xl font-bold text-red-400">
+                {todayOrders.filter((o) => o.status === 'pending_validation').length}
+              </p>
+              <p className="text-sm text-gray-400">En attente</p>
+            </div>
+            <div className="text-center p-4 bg-gray-900 rounded-lg">
+              <p className="text-2xl font-bold text-yellow-400">
+                {todayOrders.filter((o) => o.status === 'preparing').length}
+              </p>
+              <p className="text-sm text-gray-400">En préparation</p>
+            </div>
+            <div className="text-center p-4 bg-gray-900 rounded-lg">
+              <p className="text-2xl font-bold text-green-400">
+                {todayOrders.filter((o) => o.status === 'ready' || o.status === 'served').length}
+              </p>
+              <p className="text-sm text-gray-400">Servies</p>
             </div>
           </div>
-
-          {/* Grid: Commandes en direct + Avis clients */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Commandes en direct */}
-            <div className="bg-gray-800 rounded-lg border border-gray-700 p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-semibold text-white flex items-center gap-2">
-                  <ShoppingBag className="w-5 h-5 text-orange-500" />
-                  Commandes en direct
-                </h3>
-                <Link
-                  href="/admin/orders"
-                  className="text-sm text-orange-500 hover:text-orange-400 flex items-center gap-1"
-                >
-                  Voir tout
-                  <ChevronRight className="w-4 h-4" />
-                </Link>
-              </div>
-
-              <div className="space-y-3">
-                {orders
-                  .filter((o) => o.status !== 'served')
-                  .slice(0, 5)
-                  .map((order, index) => (
-                    <motion.div
-                      key={order.id}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.05 }}
-                      className="flex items-center justify-between p-4 bg-gray-900 rounded-lg hover:bg-gray-850 transition-colors"
-                    >
-                      <div className="flex items-center gap-3 flex-1">
-                        <div className="w-10 h-10 rounded-full bg-orange-500/10 flex items-center justify-center">
-                          <ShoppingBag className="w-5 h-5 text-orange-500" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-white font-medium">
-                            Table {order.tableId}
-                          </p>
-                          <p className="text-sm text-gray-400 truncate">
-                            {order.items.length} article{order.items.length > 1 ? 's' : ''} • {formatCurrency(order.totalAmount)}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {order.status === 'pending_validation' && (
-                          <span className="px-2 py-1 text-xs font-medium bg-red-500/10 text-red-400 rounded-full">
-                            Nouveau
-                          </span>
-                        )}
-                        {order.status === 'preparing' && (
-                          <span className="px-2 py-1 text-xs font-medium bg-yellow-500/10 text-yellow-400 rounded-full">
-                            En cours
-                          </span>
-                        )}
-                        {order.status === 'ready' && (
-                          <span className="px-2 py-1 text-xs font-medium bg-green-500/10 text-green-400 rounded-full">
-                            Prêt
-                          </span>
-                        )}
-                      </div>
-                    </motion.div>
-                  ))}
-
-                {orders.filter((o) => o.status !== 'served').length === 0 && (
-                  <div className="text-center py-8 text-gray-500">
-                    <ShoppingBag className="w-12 h-12 mx-auto mb-2 opacity-20" />
-                    <p className="text-sm">Aucune commande en cours</p>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Avis clients */}
-            <div className="bg-gray-800 rounded-lg border border-gray-700 p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-semibold text-white flex items-center gap-2">
-                  <MessageSquare className="w-5 h-5 text-purple-500" />
-                  Avis clients
-                </h3>
-                <Link
-                  href="/admin/reviews"
-                  className="text-sm text-purple-500 hover:text-purple-400 flex items-center gap-1"
-                >
-                  Voir tout
-                  <ChevronRight className="w-4 h-4" />
-                </Link>
-              </div>
-
-              <div className="space-y-3">
-                {reviews.map((review, index) => (
-                  <motion.div
-                    key={review.id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.05 }}
-                    className="p-4 bg-gray-900 rounded-lg hover:bg-gray-850 transition-colors"
-                  >
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex gap-1">
-                        {[1, 2, 3, 4, 5].map((value) => (
-                          <Star
-                            key={value}
-                            className={`w-4 h-4 ${
-                              value <= review.rating
-                                ? 'fill-orange-400 text-orange-400'
-                                : 'text-gray-600'
-                            }`}
-                          />
-                        ))}
-                      </div>
-                      {!review.isRead && (
-                        <span className="px-2 py-1 text-xs font-medium bg-purple-500/10 text-purple-400 rounded-full">
-                          Nouveau
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-sm text-gray-300 line-clamp-2 mb-2">
-                      {review.comment}
-                    </p>
-                    <div className="flex items-center gap-2 text-xs text-gray-500">
-                      <Clock className="w-3 h-3" />
-                      <span>
-                        {format(review.createdAt, "d MMM 'à' HH:mm", { locale: fr })}
-                      </span>
-                      <span>•</span>
-                      <span>Table {review.tableId}</span>
-                    </div>
-                  </motion.div>
-                ))}
-
-                {reviews.length === 0 && (
-                  <div className="text-center py-8 text-gray-500">
-                    <MessageSquare className="w-12 h-12 mx-auto mb-2 opacity-20" />
-                    <p className="text-sm">Aucun avis récent</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </>
+        </div>
       )}
     </div>
   );

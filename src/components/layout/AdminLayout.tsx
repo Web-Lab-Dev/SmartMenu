@@ -40,6 +40,8 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { href: '/admin', icon: LayoutDashboard, label: 'Dashboard' },
+  { href: '/admin/orders', icon: ShoppingBag, label: 'Commandes' },
+  { href: '/admin/reviews', icon: MessageSquare, label: 'Avis Clients' },
   { href: '/admin/menu', icon: UtensilsCrossed, label: 'Menu Editor' },
   { href: '/admin/marketing', icon: Gift, label: 'Marketing' },
   { href: '/admin/settings', icon: Settings, label: 'Settings' },
@@ -130,6 +132,26 @@ export function AdminLayout({ children, onAIAssistantToggle, isAIAssistantOpen =
               </Link>
             );
           })}
+
+          {/* AI Assistant Button in Sidebar */}
+          {onAIAssistantToggle && (
+            <button
+              onClick={() => onAIAssistantToggle(!isAIAssistantOpen)}
+              className={`
+                w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors
+                ${
+                  isAIAssistantOpen
+                    ? 'bg-purple-500/10 text-purple-500 font-medium'
+                    : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                }
+                ${isSidebarCollapsed ? 'justify-center' : ''}
+              `}
+              title={isSidebarCollapsed ? 'Assistant IA' : undefined}
+            >
+              <Sparkles className="w-5 h-5 shrink-0" />
+              {!isSidebarCollapsed && <span>Assistant IA</span>}
+            </button>
+          )}
         </nav>
 
         {/* Toggle Button */}
@@ -223,24 +245,10 @@ export function AdminLayout({ children, onAIAssistantToggle, isAIAssistantOpen =
                 </p>
               </div>
 
-              {/* Right actions */}
-              <div className="flex items-center gap-4">
-                {/* Live indicator */}
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                  <span className="text-sm text-gray-400">En direct</span>
-                </div>
-
-                {/* AI Assistant Button */}
-                {onAIAssistantToggle && (
-                  <button
-                    onClick={() => onAIAssistantToggle(!isAIAssistantOpen)}
-                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-lg transition-all shadow-lg hover:shadow-purple-500/50"
-                  >
-                    <Sparkles className="w-4 h-4" />
-                    <span className="font-medium">Assistant IA</span>
-                  </button>
-                )}
+              {/* Live indicator */}
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                <span className="text-sm text-gray-400">En direct</span>
               </div>
             </div>
           </div>
