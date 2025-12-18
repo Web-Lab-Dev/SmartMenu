@@ -173,17 +173,21 @@ export function LiveOrderFeed({
     // Auto-fermeture après NOTIFICATION_DURATION
     const autoCloseTimer = setTimeout(() => {
       setCurrentNotification(null);
-      processingRef.current = false;
+
+      // Si c'était la dernière notification de la file, débloquer immédiatement
+      if (rest.length === 0) {
+        processingRef.current = false;
+      }
     }, NOTIFICATION_DURATION);
 
-    // Attendre NOTIFICATION_INTERVAL avant de traiter la suivante
-    const nextTimer = setTimeout(() => {
+    // Attendre NOTIFICATION_INTERVAL avant de traiter la suivante (seulement s'il y en a d'autres)
+    const nextTimer = rest.length > 0 ? setTimeout(() => {
       processingRef.current = false;
-    }, NOTIFICATION_INTERVAL);
+    }, NOTIFICATION_INTERVAL) : null;
 
     return () => {
       clearTimeout(autoCloseTimer);
-      clearTimeout(nextTimer);
+      if (nextTimer) clearTimeout(nextTimer);
     };
   }, [currentNotification, notificationQueue]);
 

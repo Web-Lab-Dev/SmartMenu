@@ -259,6 +259,7 @@ export const useCartStore = create<CartStore>()(
 
       /**
        * Clear cart with optional force flag
+       * Preserves restaurantId and tableId context to allow multiple orders
        */
       clearCart: (force = false) => {
         const state = get();
@@ -267,7 +268,8 @@ export const useCartStore = create<CartStore>()(
           console.warn('Clearing cart with items. Set force=true to suppress warning.');
         }
 
-        set({ items: [], restaurantId: null, tableId: null, appliedCoupon: null });
+        // Only clear items and coupon, preserve restaurant/table context
+        set({ items: [], appliedCoupon: null });
       },
 
       /**
