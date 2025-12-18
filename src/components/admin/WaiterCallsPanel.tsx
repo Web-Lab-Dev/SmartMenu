@@ -59,14 +59,14 @@ export function WaiterCallsPanel({ restaurantId }: WaiterCallsPanelProps) {
     }
   };
 
-  console.log('[WaiterCallsPanel] Rendering with calls count:', calls.length);
+  // Debugging logs
+  useEffect(() => {
+    console.log('[WaiterCallsPanel] Rendering with calls count:', calls.length);
+  }, [calls.length]);
 
   if (calls.length === 0) {
-    console.log('[WaiterCallsPanel] No calls to display, returning null');
     return null;
   }
-
-  console.log('[WaiterCallsPanel] Rendering', calls.length, 'call notification(s)');
 
   return (
     <div className="fixed top-20 right-4 z-50 w-80">

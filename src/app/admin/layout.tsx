@@ -8,13 +8,16 @@ import { AdminLayout } from '@/components/layout/AdminLayout';
 import { AIAssistantPanel } from '@/components/admin/AIAssistantPanel';
 import { WaiterCallsPanel } from '@/components/admin/WaiterCallsPanel';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
-import { useState, type ReactNode } from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
 
 export default function Layout({ children }: { children: ReactNode }) {
   const [isAIAssistantOpen, setIsAIAssistantOpen] = useState(false);
   const { restaurantId } = useAdminAuth();
 
-  console.log('[AdminLayout] Rendering with restaurantId:', restaurantId);
+  // Debug logging
+  useEffect(() => {
+    console.log('[AdminLayout] restaurantId changed:', restaurantId);
+  }, [restaurantId]);
 
   return (
     <>
@@ -32,14 +35,7 @@ export default function Layout({ children }: { children: ReactNode }) {
       />
 
       {/* Waiter Calls Notifications */}
-      {restaurantId ? (
-        <>
-          {console.log('[AdminLayout] Rendering WaiterCallsPanel with restaurantId:', restaurantId)}
-          <WaiterCallsPanel restaurantId={restaurantId} />
-        </>
-      ) : (
-        console.log('[AdminLayout] No restaurantId, not rendering WaiterCallsPanel')
-      )}
+      {restaurantId && <WaiterCallsPanel restaurantId={restaurantId} />}
     </>
   );
 }
