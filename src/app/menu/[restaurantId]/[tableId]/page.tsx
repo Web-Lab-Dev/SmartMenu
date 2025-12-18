@@ -14,11 +14,12 @@ import { ThemeProvider } from '@/components/ThemeProvider';
 import { ReviewModal } from '@/components/client/ReviewModal';
 import { RestaurantService } from '@/services/RestaurantService';
 import { InternalReviewService } from '@/services/InternalReviewService';
+import { OrderService } from '@/services/OrderService';
 import { useCartStore } from '@/lib/store';
 import { useMenuData } from '@/hooks/useMenuData';
 import { getOrCreateCustomerSessionId } from '@/lib/utils';
 import { toast } from 'sonner';
-import type { Restaurant, Category } from '@/types/schema';
+import type { Restaurant, Category, Order } from '@/types/schema';
 
 // Dynamic import AI Chat Bubble (non-critical feature)
 const AIChatBubble = dynamic(
@@ -69,9 +70,37 @@ export default function MenuPage({ params: paramsPromise }: PageProps) {
   const [socialCameraOpen, setSocialCameraOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [orderTrackerOpen, setOrderTrackerOpen] = useState(false);
+  const [activeOrdersCount, setActiveOrdersCount] = useState(0);
 
   const { setContext } = useCartStore();
   const customerSessionId = getOrCreateCustomerSessionId();
+
+  // Subscribe to orders to track active count
+  useEffect(() => {
+    if (!actualRestaurantId || !tableId || !customerSessionId) return;
+
+    console.log('[OrderTracker] Subscribing to orders:', {
+      restaurantId: actualRestaurantId,
+      tableId,
+      customerSessionId,
+    });
+
+    const unsubscribe = OrderService.subscribeToTableOrders(
+      actualRestaurantId,
+      tableId,
+      customerSessionId,
+      (orders) => {
+        console.log('[OrderTracker] Orders updated:', orders);
+        const activeCount = (orders as Order[]).filter(
+          (o) => o.status !== 'served' && o.status !== 'rejected'
+        ).length;
+        console.log('[OrderTracker] Active orders count:', activeCount);
+        setActiveOrdersCount(activeCount);
+      }
+    );
+
+    return () => unsubscribe();
+  }, [actualRestaurantId, tableId, customerSessionId]);
 
   // Fetch restaurant info (one-time)
   useEffect(() => {
@@ -300,14 +329,22 @@ export default function MenuPage({ params: paramsPromise }: PageProps) {
         <FloatingCartButton onClick={handleViewCart} />
 
         {/* Floating Order Tracker Button */}
-        {actualRestaurantId && (
-          <button
-            onClick={() => setOrderTrackerOpen(!orderTrackerOpen)}
-            className="fixed bottom-24 right-4 z-40 w-14 h-14 bg-gradient-to-br from-blue-500 to-purple-600 text-white rounded-full shadow-lg flex items-center justify-center transition-transform hover:scale-110 active:scale-95"
-            aria-label="Voir mes commandes"
-          >
-            <Package className="w-6 h-6" />
-          </button>
+        {actualRestaurantId && activeOrdersCount > 0 && (
+          <div className="fixed bottom-24 right-4 z-40">
+            <button
+              onClick={() => setOrderTrackerOpen(!orderTrackerOpen)}
+              className="relative w-14 h-14 bg-gradient-to-br from-blue-500 to-purple-600 text-white rounded-full shadow-lg flex items-center justify-center transition-transform hover:scale-110 active:scale-95"
+              aria-label="Voir mes commandes"
+            >
+              <Package className="w-6 h-6" />
+              {/* Badge with count */}
+              {activeOrdersCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-6 h-6 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center border-2 border-white animate-pulse">
+                  {activeOrdersCount}
+                </span>
+              )}
+            </button>
+          </div>
         )}
 
         {/* AI Chat Bubble - Lazy loaded */}

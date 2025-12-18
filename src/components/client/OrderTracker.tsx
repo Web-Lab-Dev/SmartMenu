@@ -42,11 +42,18 @@ export function OrderTracker({
   useEffect(() => {
     if (!restaurantId || !tableId || !customerSessionId) return;
 
+    console.log('[OrderTracker Component] Subscribing to orders:', {
+      restaurantId,
+      tableId,
+      customerSessionId,
+    });
+
     const unsubscribe = OrderService.subscribeToTableOrders(
       restaurantId,
       tableId,
       customerSessionId,
       (fetchedOrders) => {
+        console.log('[OrderTracker Component] Orders received:', fetchedOrders);
         setOrders(fetchedOrders as Order[]);
       }
     );
@@ -57,7 +64,8 @@ export function OrderTracker({
   // Filter to only active orders (not served)
   const activeOrders = orders.filter((o) => o.status !== 'served' && o.status !== 'rejected');
 
-  if (activeOrders.length === 0) return null;
+  // Don't show if no orders at all
+  if (orders.length === 0) return null;
 
   return (
     <AnimatePresence>
@@ -86,9 +94,21 @@ export function OrderTracker({
 
           {/* Orders List */}
           <div className="max-h-96 overflow-y-auto">
-            {activeOrders.map((order) => (
-              <OrderStatusCard key={order.id} order={order} />
-            ))}
+            {activeOrders.length > 0 ? (
+              activeOrders.map((order) => (
+                <OrderStatusCard key={order.id} order={order} />
+              ))
+            ) : (
+              <div className="p-8 text-center">
+                <div className="text-5xl mb-4">✅</div>
+                <p className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                  Toutes vos commandes sont servies !
+                </p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Bon appétit ! 🍽️
+                </p>
+              </div>
+            )}
           </div>
         </motion.div>
       )}
