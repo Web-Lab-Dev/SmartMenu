@@ -105,6 +105,8 @@ export function SocialCamera({
 
     console.log('[Capture] Native resolution:', nativeWidth, 'x', nativeHeight);
 
+    let finalImageSrc: string;
+
     try {
       // 1. Dessiner la frame vidéo à résolution native
       ctx.drawImage(video, 0, 0, nativeWidth, nativeHeight);
@@ -127,7 +129,7 @@ export function SocialCamera({
       }
 
       // 4. Export HAUTE QUALITÉ (qualité 0.95 - proche lossless)
-      const finalImageSrc = nativeCanvas.toDataURL('image/jpeg', 0.95);
+      finalImageSrc = nativeCanvas.toDataURL('image/jpeg', 0.95);
       setCapturedImage(finalImageSrc);
     } catch (error) {
       console.error('[Capture] Error:', error);
@@ -166,7 +168,7 @@ export function SocialCamera({
     } finally {
       setIsGenerating(false);
     }
-  }, [selectedTemplate, selectedSticker, restaurantName, restaurantLogo, menuUrl, primaryColor]);
+  }, [selectedTemplate, selectedSticker, selectedFilter, restaurantName, restaurantLogo, menuUrl, primaryColor]);
 
   // Retour à la caméra
   const resetCamera = () => {
