@@ -16,7 +16,7 @@ import {
   Timestamp,
   deleteDoc
 } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { getDb } from '@/lib/firebase';
 
 export interface WaiterCall {
   id: string;
@@ -39,6 +39,7 @@ export class WaiterCallService {
     tableLabelString: string
   ): Promise<{ callId: string }> {
     try {
+      const db = getDb();
       const callData = {
         restaurantId,
         tableId,
@@ -65,6 +66,7 @@ export class WaiterCallService {
     restaurantId: string,
     onCallsUpdate: (calls: WaiterCall[]) => void
   ): () => void {
+    const db = getDb();
     const q = query(
       collection(db, 'waiterCalls'),
       where('restaurantId', '==', restaurantId),
@@ -104,6 +106,7 @@ export class WaiterCallService {
    */
   static async acknowledgeCall(callId: string): Promise<void> {
     try {
+      const db = getDb();
       const callRef = doc(db, 'waiterCalls', callId);
       await updateDoc(callRef, {
         status: 'acknowledged',
@@ -122,6 +125,7 @@ export class WaiterCallService {
    */
   static async completeCall(callId: string): Promise<void> {
     try {
+      const db = getDb();
       const callRef = doc(db, 'waiterCalls', callId);
       await updateDoc(callRef, {
         status: 'completed',
@@ -150,6 +154,7 @@ export class WaiterCallService {
    */
   static async getPendingCallsCount(restaurantId: string): Promise<number> {
     try {
+      const db = getDb();
       const q = query(
         collection(db, 'waiterCalls'),
         where('restaurantId', '==', restaurantId),
