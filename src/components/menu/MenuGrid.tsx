@@ -1,0 +1,211 @@
+// ========================================
+// MenuGrid Component
+// ========================================
+// Smart hybrid layout: Hero cards for first 2, Compact cards for rest
+
+'use client';
+
+import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
+import { motion } from 'framer-motion';
+import type { Product, Category } from '@/types/schema';
+import { HeroCard, HeroCardSkeleton } from './HeroCard';
+import { CompactCard, CompactCardSkeleton } from './CompactCard';
+import { ProductDrawer } from './ProductDrawer';
+import { useCartStore } from '@/lib/store';
+import { toast } from 'sonner';
+
+interface MenuGridProps {
+  products: Product[];
+  activeCategory: string | null;
+  loading?: boolean;
+}
+
+// ⚡ PERF: Externaliser les variants d'animation
+const heroGridVariants = {
+  initial: { opacity: 0 },
+  animate: { opacity: 1 },
+};
+
+const compactGridVariants = {
+  initial: { opacity: 0 },
+  animate: { opacity: 1 },
+};
+
+const heroGridTransition = { duration: 0.3 };
+const compactGridTransition = { duration: 0.3, delay: 0.2 };
+
+const emptyStateVariants = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+};
+
+/**
+ * MenuGrid - Hybrid layout for product display
+ *
+ * Layout Strategy:
+ * - First 2 products in each category: HeroCard (large, vertical)
+ * - Remaining products: CompactCard (horizontal, list-style)
+ * - Click on any card opens ProductDrawer with full details
+ * - Quick add button on cards adds to cart directly
+ */
+export function MenuGrid({ products, activeCategory, loading }: MenuGridProps) {
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const { addItem } = useCartStore();
+  const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // ⚡ PERF: Memoize filteredProducts pour éviter recalcul à chaque render
+  const filteredProducts = useMemo(() =>
+    activeCategory
+      ? products.filter((p) => p.categoryId === activeCategory && p.isAvailable)
+      : products.filter((p) => p.isAvailable),
+    [products, activeCategory]
+  );
+
+  // ⚡ PERF: Memoize split products
+  const heroProducts = useMemo(() => filteredProducts.slice(0, 2), [filteredProducts]);
+  const compactProducts = useMemo(() => filteredProducts.slice(2), [filteredProducts]);
+
+  // ⚡ PERF: useCallback pour handlers
+  const handleProductClick = useCallback((product: Product) => {
+    setSelectedProduct(product);
+    setIsDrawerOpen(true);
+  }, []);
+
+  const handleQuickAdd = useCallback((product: Product, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent opening drawer
+    try {
+      addItem(product, 1);
+      toast.success(`${product.name} ajouté au panier`);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Erreur');
+    }
+  }, [addItem]);
+
+  const handleCloseDrawer = useCallback(() => {
+    setIsDrawerOpen(false);
+    // Delay clearing product to allow drawer animation
+    closeTimeoutRef.current = setTimeout(() => setSelectedProduct(null), 300);
+  }, []);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (closeTimeoutRef.current) {
+        clearTimeout(closeTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        {/* Hero Cards Skeleton */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <HeroCardSkeleton />
+          <HeroCardSkeleton />
+        </div>
+
+        {/* Compact Cards Skeleton */}
+        <div className="space-y-3">
+          {[1, 2, 3, 4].map((i) => (
+            <CompactCardSkeleton key={i} />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Empty state
+  if (filteredProducts.length === 0) {
+    return (
+      <motion.div
+        initial={emptyStateVariants.initial}
+        animate={emptyStateVariants.animate}
+        className="flex flex-col items-center justify-center py-16 text-center"
+      >
+        <span className="text-6xl mb-4">🍽️</span>
+        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+          Aucun produit disponible
+        </h3>
+        <p className="text-gray-500 dark:text-gray-400">
+          {activeCategory
+            ? 'Aucun produit dans cette catégorie pour le moment'
+            : 'Le menu est en cours de préparation'}
+        </p>
+      </motion.div>
+    );
+  }
+
+  return (
+    <>
+      <div className="space-y-6">
+        {/* Hero Products (First 2) - Grid Layout */}
+        {heroProducts.length > 0 && (
+          <motion.div
+            className="grid grid-cols-1 md:grid-cols-2 gap-4"
+            initial={heroGridVariants.initial}
+            animate={heroGridVariants.animate}
+            transition={heroGridTransition}
+          >
+            {heroProducts.map((product, idx) => (
+              <motion.div
+                key={product.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: idx * 0.1 }}
+              >
+                <HeroCard
+                  product={product}
+                  onClick={() => handleProductClick(product)}
+                  priority={idx === 0}
+                  onAddToCart={(e) => handleQuickAdd(product, e)}
+                />
+              </motion.div>
+            ))}
+          </motion.div>
+        )}
+
+        {/* Compact Products (Rest) - List Layout */}
+        {compactProducts.length > 0 && (
+          <motion.div
+            className="space-y-3"
+            initial={compactGridVariants.initial}
+            animate={compactGridVariants.animate}
+            transition={compactGridTransition}
+          >
+            {compactProducts.map((product, idx) => (
+              <motion.div
+                key={product.id}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.2 + idx * 0.05 }}
+              >
+                <CompactCard
+                  product={product}
+                  onClick={() => handleProductClick(product)}
+                  onAddToCart={(e) => handleQuickAdd(product, e)}
+                />
+              </motion.div>
+            ))}
+          </motion.div>
+        )}
+
+        {/* Category Count Badge */}
+        <div className="flex justify-center pt-4">
+          <div className="px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-full text-sm text-gray-600 dark:text-gray-400">
+            {filteredProducts.length} produit{filteredProducts.length > 1 ? 's' : ''}
+          </div>
+        </div>
+      </div>
+
+      {/* Product Detail Drawer */}
+      <ProductDrawer
+        product={selectedProduct}
+        isOpen={isDrawerOpen}
+        onClose={handleCloseDrawer}
+      />
+    </>
+  );
+}

@@ -1,0 +1,304 @@
+@import "tailwindcss";
+
+/* ========================================
+   Design System - Premium V2 avec Glassmorphism
+   ======================================== */
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+
+  /* Brand Colors - Dynamiques par restaurant */
+  --brand-color: #FF4500; /* Couleur principale restaurant */
+  --brand-rgb: 255, 69, 0; /* Version RGB pour opacité */
+
+  /* Glassmorphism */
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.3);
+  --glass-shadow: rgba(0, 0, 0, 0.1);
+
+  /* Glassmorphism - Header/Nav */
+  --glass-header-bg: rgba(255, 255, 255, 0.8);
+  --glass-header-border: rgba(255, 255, 255, 0.4);
+
+  /* Glassmorphism - FAB/Bottom Bar */
+  --glass-fab-bg: rgba(255, 255, 255, 0.9);
+  --glass-fab-border: rgba(255, 255, 255, 0.5);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+
+    /* Glassmorphism Dark Mode */
+    --glass-bg: rgba(0, 0, 0, 0.6);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --glass-shadow: rgba(0, 0, 0, 0.3);
+
+    --glass-header-bg: rgba(0, 0, 0, 0.7);
+    --glass-header-border: rgba(255, 255, 255, 0.15);
+
+    --glass-fab-bg: rgba(0, 0, 0, 0.8);
+    --glass-fab-border: rgba(255, 255, 255, 0.2);
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+
+  /* Smooth scroll iOS-style */
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* ========================================
+   Navigation Transitions (60fps)
+   ======================================== */
+
+/* Instant page transitions for better perceived performance */
+@view-transition {
+  navigation: auto;
+}
+
+/* Fade transition for route changes */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.2s;
+}
+
+::view-transition-old(root) {
+  animation-name: fadeOut;
+}
+
+::view-transition-new(root) {
+  animation-name: fadeIn;
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+
+/* ========================================
+   Glassmorphism Utility Classes
+   ======================================== */
+
+.glass-panel {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 8px 32px 0 var(--glass-shadow);
+}
+
+.glass-header {
+  background: var(--glass-header-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--glass-header-border);
+  box-shadow: 0 4px 16px 0 var(--glass-shadow);
+}
+
+.glass-fab {
+  background: var(--glass-fab-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-fab-border);
+  box-shadow: 0 12px 40px 0 var(--glass-shadow);
+}
+
+/* ========================================
+   Animations & Transitions (60fps optimized)
+   ======================================== */
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+  20%, 40%, 60%, 80% { transform: translateX(4px); }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-shake {
+  animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.2s ease-in-out both;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.2s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+@keyframes bounceIn {
+  0% {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-10deg); }
+  75% { transform: rotate(10deg); }
+}
+
+.animate-bounce-in {
+  animation: bounceIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) both;
+}
+
+.animate-wiggle {
+  animation: wiggle 1s ease-in-out infinite;
+}
+
+/* ========================================
+   Smooth Transitions (Performance optimized)
+   ======================================== */
+
+.transition-smooth {
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform, opacity;
+}
+
+.transition-glass {
+  transition: background 0.3s ease,
+              border-color 0.3s ease,
+              box-shadow 0.3s ease;
+}
+
+/* ========================================
+   Mobile-First Touch Optimizations
+   ======================================== */
+
+.touch-feedback {
+  -webkit-tap-highlight-color: rgba(var(--brand-rgb), 0.1);
+  touch-action: manipulation;
+  user-select: none;
+}
+
+/* Disable text selection on tap targets */
+button,
+.clickable {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* ========================================
+   Accessibility (Motion)
+   ======================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ========================================
+   Print Styles - QR Code Optimization
+   ======================================== */
+
+@media print {
+  /* Remove all backgrounds and shadows for clean print */
+  body {
+    background: white !important;
+  }
+
+  /* Ensure QR codes print in high quality */
+  svg {
+    shape-rendering: crispEdges;
+  }
+
+  /* Optimize page breaks */
+  .print\:break-inside-avoid {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* A4 Page optimization - 2x2 grid per page */
+  @page {
+    size: A4;
+    margin: 1cm;
+  }
+}
+
+/* ========================================
+   React Colorful Custom Styles
+   ======================================== */
+
+.react-colorful {
+  width: 100% !important;
+  height: 200px !important;
+}
+
+.react-colorful__saturation {
+  border-radius: 8px 8px 0 0;
+  border-bottom: none;
+}
+
+.react-colorful__hue {
+  height: 12px;
+  border-radius: 12px;
+  margin-top: 12px;
+}
+
+.react-colorful__pointer {
+  width: 20px;
+  height: 20px;
+}

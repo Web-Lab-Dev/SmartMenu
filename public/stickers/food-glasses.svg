@@ -1,0 +1,61 @@
+<svg width="300" height="120" xmlns="http://www.w3.org/2000/svg">
+  <!-- Food Glasses - Burger/Pizza slices as lenses -->
+  <defs>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+
+  <!-- Left lens - Burger -->
+  <g transform="translate(60, 60)" filter="url(#shadow)">
+    <!-- Bun top -->
+    <ellipse cx="0" cy="-20" rx="35" ry="15" fill="#D4A574" stroke="#8B6F47" stroke-width="2"/>
+    <!-- Sesame seeds -->
+    <circle cx="-15" cy="-22" r="2" fill="#F5DEB3"/>
+    <circle cx="0" cy="-23" r="2" fill="#F5DEB3"/>
+    <circle cx="15" cy="-22" r="2" fill="#F5DEB3"/>
+
+    <!-- Lettuce -->
+    <ellipse cx="0" cy="-10" rx="32" ry="8" fill="#7FBA00"/>
+
+    <!-- Cheese -->
+    <ellipse cx="0" cy="-3" rx="34" ry="7" fill="#FFD700"/>
+
+    <!-- Patty -->
+    <ellipse cx="0" cy="5" rx="36" ry="10" fill="#8B4513"/>
+
+    <!-- Bun bottom -->
+    <ellipse cx="0" cy="15" rx="38" ry="12" fill="#D4A574" stroke="#8B6F47" stroke-width="2"/>
+  </g>
+
+  <!-- Right lens - Pizza slice -->
+  <g transform="translate(240, 60)" filter="url(#shadow)">
+    <!-- Pizza crust (triangle) -->
+    <path d="M 0 -30 L -35 20 L 35 20 Z" fill="#D4A574" stroke="#8B6F47" stroke-width="2"/>
+
+    <!-- Tomato sauce -->
+    <path d="M 0 -25 L -30 15 L 30 15 Z" fill="#DC143C"/>
+
+    <!-- Cheese -->
+    <path d="M 0 -22 L -27 12 L 27 12 Z" fill="#FFD700" opacity="0.8"/>
+
+    <!-- Pepperoni -->
+    <circle cx="-10" cy="-5" r="5" fill="#8B0000"/>
+    <circle cx="8" cy="0" r="5" fill="#8B0000"/>
+    <circle cx="-5" cy="8" r="5" fill="#8B0000"/>
+
+    <!-- Melted cheese spots -->
+    <ellipse cx="-15" cy="5" rx="4" ry="3" fill="#FFF8DC"/>
+    <ellipse cx="12" cy="10" rx="4" ry="3" fill="#FFF8DC"/>
+  </g>
+
+  <!-- Glasses frame (connecting bridge and arms) -->
+  <!-- Bridge -->
+  <line x1="95" y1="60" x2="205" y2="60" stroke="#333" stroke-width="3"/>
+
+  <!-- Left arm -->
+  <line x1="25" y1="60" x2="10" y2="55" stroke="#333" stroke-width="3"/>
+
+  <!-- Right arm -->
+  <line x1="275" y1="60" x2="290" y2="55" stroke="#333" stroke-width="3"/>
+</svg>
