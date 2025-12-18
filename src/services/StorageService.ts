@@ -98,12 +98,25 @@ export class StorageService {
    */
   static async deleteProductImage(imageUrl: string): Promise<void> {
     try {
+      // Validate URL before attempting deletion
+      if (!imageUrl || typeof imageUrl !== 'string' || imageUrl.trim() === '') {
+        console.warn('[Storage] Skipping deletion of empty/invalid URL');
+        return;
+      }
+
+      // Check if it's a valid Firebase Storage URL
+      if (!imageUrl.includes('firebasestorage.googleapis.com')) {
+        console.warn('[Storage] Skipping deletion of non-Firebase URL:', imageUrl);
+        return;
+      }
+
       // Extract path from URL
       const url = new URL(imageUrl);
       const pathMatch = url.pathname.match(/\/o\/(.+)\?/);
 
       if (!pathMatch) {
-        throw new Error('Invalid storage URL');
+        console.warn('[Storage] Invalid Firebase Storage URL format:', imageUrl);
+        return;
       }
 
       const path = decodeURIComponent(pathMatch[1] || '');
@@ -111,10 +124,11 @@ export class StorageService {
       const imageRef = ref(storage, path);
 
       await deleteObject(imageRef);
-      console.log('[Storage] Image deleted successfully');
+      console.log('[Storage] Image deleted successfully:', path);
     } catch (error) {
       console.error('[Storage] Failed to delete image:', error);
-      throw error;
+      // Don't throw - log warning instead to allow deletion to continue
+      console.warn('[Storage] Continuing deletion despite error for URL:', imageUrl);
     }
   }
 
