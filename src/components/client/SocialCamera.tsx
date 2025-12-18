@@ -297,11 +297,13 @@ export function SocialCamera({
                     filter: CSS_FILTERS.find((f) => f.id === selectedFilter)?.css || 'none',
                   }}
                   onUserMedia={(stream) => {
-                    if (videoRef.current && webcamRef.current) {
+                    if (webcamRef.current) {
                       const video = (webcamRef.current as any).video;
                       if (video) {
                         videoRef.current = video;
-                        console.log('[SocialCamera] Video resolution:', video.videoWidth, 'x', video.videoHeight);
+                        console.log('[SocialCamera] Video initialized with resolution:', video.videoWidth, 'x', video.videoHeight);
+                      } else {
+                        console.error('[SocialCamera] Could not get video element from webcam');
                       }
                     }
                   }}
