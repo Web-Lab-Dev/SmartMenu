@@ -36,7 +36,7 @@ export function ProductDrawer({ product, isOpen, onClose }: ProductDrawerProps) 
   if (!product) return null;
 
   // Handle multiple images - use images array or fallback to legacy image field
-  const images = product.images && product.images.length > 0
+  const images = Array.isArray(product.images) && product.images.length > 0
     ? product.images
     : product.image
     ? [product.image]

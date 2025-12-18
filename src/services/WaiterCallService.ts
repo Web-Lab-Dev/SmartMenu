@@ -69,11 +69,13 @@ export class WaiterCallService {
     console.log('[WaiterCallService] Setting up subscription for restaurantId:', restaurantId);
 
     const db = getDb();
+
+    // Simplified query - removed orderBy to avoid composite index requirement
+    // We'll sort in memory instead
     const q = query(
       collection(db, 'waiterCalls'),
       where('restaurantId', '==', restaurantId),
-      where('status', 'in', ['pending', 'acknowledged']),
-      orderBy('createdAt', 'desc')
+      where('status', 'in', ['pending', 'acknowledged'])
     );
 
     console.log('[WaiterCallService] Query created, setting up onSnapshot listener');
@@ -83,22 +85,25 @@ export class WaiterCallService {
       (snapshot) => {
         console.log('[WaiterCallService] Snapshot received, docs count:', snapshot.docs.length);
 
-        const calls: WaiterCall[] = snapshot.docs.map((doc) => {
-          const data = doc.data();
-          console.log('[WaiterCallService] Processing call doc:', doc.id, data);
-          return {
-            id: doc.id,
-            restaurantId: data.restaurantId,
-            tableId: data.tableId,
-            tableLabelString: data.tableLabelString,
-            status: data.status,
-            createdAt: data.createdAt?.toDate() || new Date(),
-            acknowledgedAt: data.acknowledgedAt?.toDate(),
-            completedAt: data.completedAt?.toDate(),
-          };
-        });
+        const calls: WaiterCall[] = snapshot.docs
+          .map((doc) => {
+            const data = doc.data();
+            console.log('[WaiterCallService] Processing call doc:', doc.id, data);
+            return {
+              id: doc.id,
+              restaurantId: data.restaurantId,
+              tableId: data.tableId,
+              tableLabelString: data.tableLabelString,
+              status: data.status,
+              createdAt: data.createdAt?.toDate() || new Date(),
+              acknowledgedAt: data.acknowledgedAt?.toDate(),
+              completedAt: data.completedAt?.toDate(),
+            };
+          })
+          // Sort by createdAt desc (in memory)
+          .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 
-        console.log('[WaiterCallService] Mapped calls:', calls);
+        console.log('[WaiterCallService] Mapped and sorted calls:', calls);
         onCallsUpdate(calls);
       },
       (error) => {
