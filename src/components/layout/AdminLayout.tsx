@@ -93,7 +93,7 @@ export function AdminLayout({ children, onAIAssistantToggle, isAIAssistantOpen =
   useEffect(() => {
     if (!restaurantId) return;
 
-    const unsubscribe = OrderService.subscribeToOrders(restaurantId, (orders) => {
+    const unsubscribe = OrderService.subscribeToRestaurantOrders(restaurantId, (orders) => {
       const pendingCount = orders.filter(
         (order) => order.status === 'pending_validation' || order.status === 'preparing'
       ).length;
