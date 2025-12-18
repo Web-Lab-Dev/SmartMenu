@@ -310,20 +310,24 @@ export class MenuService {
     imageUrls: string[]
   ): Promise<void> {
     try {
+      console.log(`🗑️ Starting deletion of product ${productId} with ${imageUrls.length} images`);
       const db = getDb();
 
       // Delete all images
       if (imageUrls && imageUrls.length > 0) {
+        console.log(`📸 Deleting ${imageUrls.length} images from storage...`);
         await StorageService.deleteMultipleImages(imageUrls);
+        console.log(`✓ Images deleted successfully`);
       }
 
       // Delete product document
+      console.log(`📄 Deleting product document from Firestore...`);
       const productRef = doc(db, COLLECTIONS.PRODUCTS, productId);
       await deleteDoc(productRef);
 
-      console.log(`✓ Product deleted: ${productId}`);
+      console.log(`✅ Product deleted successfully: ${productId}`);
     } catch (error) {
-      console.error('Error deleting product:', error);
+      console.error('❌ Error deleting product:', error);
       throw new Error('Impossible de supprimer le produit');
     }
   }

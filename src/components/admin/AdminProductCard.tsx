@@ -43,21 +43,36 @@ function AdminProductCardComponent({
   };
 
   const handleDelete = async () => {
+    console.log(`🔘 Delete button clicked for product: ${product.name} (${product.id})`);
+
     const confirm = window.confirm(
       `Supprimer "${product.name}" ?\n\nCette action est irréversible.`
     );
-    if (!confirm) return;
 
+    if (!confirm) {
+      console.log(`❌ User cancelled deletion`);
+      return;
+    }
+
+    console.log(`✓ User confirmed deletion`);
     setIsDeleting(true);
+
     try {
       const images = getProductImages(product);
+      console.log(`📸 Product has ${images.length} images`);
+
       if (images.length > 0) {
+        console.log(`🔄 Calling deleteProductWithImages...`);
         await MenuService.deleteProductWithImages(restaurantId, product.id, images);
       } else {
+        console.log(`🔄 Calling deleteProduct (legacy)...`);
         await MenuService.deleteProduct(restaurantId, product.id, product.image);
       }
+
+      console.log(`✅ Deletion completed, calling onDeleted callback`);
       onDeleted?.();
     } catch (error) {
+      console.error(`❌ Deletion failed:`, error);
       alert(error instanceof Error ? error.message : 'Erreur lors de la suppression');
       setIsDeleting(false);
     }
