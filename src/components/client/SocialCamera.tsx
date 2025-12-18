@@ -140,43 +140,23 @@ export function SocialCamera({
       // 1. Dessiner la frame vidéo à résolution native
       ctx.drawImage(video, 0, 0, nativeWidth, nativeHeight);
 
-      console.log('[Capture] Step 2: Image enhancement (brightness & contrast)...');
-      // 2. TRAITEMENT D'IMAGE - Corriger l'exposition automatiquement
-      const imageData = ctx.getImageData(0, 0, nativeWidth, nativeHeight);
-      const data = imageData.data;
+      console.log('[Capture] Step 2: Applying "Night Mode" enhancement...');
+      // 2. "NIGHT MODE" - Formule optimisée pour restaurants sombres
+      // Utilise les filtres CSS Canvas (bien plus rapide que pixel-by-pixel)
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.width = nativeWidth;
+      tempCanvas.height = nativeHeight;
+      const tempCtx = tempCanvas.getContext('2d')!;
 
-      // Paramètres d'amélioration
-      const brightnessBoost = 25; // +25 luminosité
-      const contrastFactor = 1.1; // +10% contraste
-      const saturationBoost = 1.1; // +10% saturation (optionnel)
+      // Appliquer la formule magique Night Mode
+      tempCtx.filter = 'brightness(135%) contrast(115%) saturate(120%)';
+      tempCtx.drawImage(nativeCanvas, 0, 0);
 
-      for (let i = 0; i < data.length; i += 4) {
-        // R, G, B à indices i, i+1, i+2
+      // Réappliquer sur le canvas principal
+      ctx.clearRect(0, 0, nativeWidth, nativeHeight);
+      ctx.drawImage(tempCanvas, 0, 0);
 
-        // CONTRASTE: Décaler vers le milieu puis amplifier
-        let r = data[i];
-        let g = data[i + 1];
-        let b = data[i + 2];
-
-        // Appliquer contraste (centré sur 128)
-        r = ((r - 128) * contrastFactor) + 128;
-        g = ((g - 128) * contrastFactor) + 128;
-        b = ((b - 128) * contrastFactor) + 128;
-
-        // LUMINOSITÉ: Ajouter offset
-        r += brightnessBoost;
-        g += brightnessBoost;
-        b += brightnessBoost;
-
-        // Clamper entre 0-255
-        data[i] = Math.max(0, Math.min(255, r));
-        data[i + 1] = Math.max(0, Math.min(255, g));
-        data[i + 2] = Math.max(0, Math.min(255, b));
-      }
-
-      // Réécrire l'image traitée sur le canvas
-      ctx.putImageData(imageData, 0, 0);
-      console.log('[Capture] Image enhanced successfully');
+      console.log('[Capture] Night Mode applied successfully');
 
       console.log('[Capture] Step 3: Applying CSS filters...');
       // 3. Appliquer le filtre CSS si sélectionné
