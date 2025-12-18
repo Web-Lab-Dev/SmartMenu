@@ -1,7 +1,7 @@
 // ========================================
-// Social Image Generator - Canvas Merging Engine
+// Social Image Generator - SVG Template Engine (REFACTORED)
 // ========================================
-// Fusionne photo + template + QR Code pour créer des images virales
+// Utilise des templates SVG pour une qualité native professionnelle
 // Modes : Standard Frame, Foodie Passport, Receipt Aesthetic
 
 export type TemplateType = 'standard' | 'passport' | 'receipt';
@@ -16,13 +16,11 @@ export interface SocialImageOptions {
 }
 
 /**
- * Génère un QR Code en data URL using dynamic import
+ * Génère un QR Code en data URL
  */
-async function generateQRCode(url: string, size: number = 120): Promise<string> {
+async function generateQRCode(url: string, size: number = 200): Promise<string> {
   try {
-    // Dynamic import de qrcode pour éviter les erreurs SSR
     const QRCode = (await import('qrcode')).default;
-
     const canvas = document.createElement('canvas');
     await QRCode.toCanvas(canvas, url, {
       width: size,
@@ -32,10 +30,9 @@ async function generateQRCode(url: string, size: number = 120): Promise<string> 
         light: '#FFFFFF',
       },
     });
-
     return canvas.toDataURL();
   } catch (error) {
-    console.error('QR generation error:', error);
+    console.error('[QR] Generation error:', error);
     return '';
   }
 }
@@ -54,45 +51,165 @@ function loadImage(src: string): Promise<HTMLImageElement> {
 }
 
 /**
- * Mode A : Standard Frame
- * Photo + Cadre + Logo restaurant en bas
+ * Charge un template SVG et retourne le texte SVG
  */
-async function generateStandardFrame(
-  options: SocialImageOptions
-): Promise<string> {
+async function loadSVGTemplate(templatePath: string): Promise<string> {
+  try {
+    const response = await fetch(templatePath);
+    if (!response.ok) throw new Error(`Failed to load template: ${templatePath}`);
+    return await response.text();
+  } catch (error) {
+    console.error('[SVG] Template load error:', error);
+    throw error;
+  }
+}
+
+/**
+ * Convertit un SVG string en Image pour le rendu canvas
+ */
+function svgStringToImage(svgString: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const blob = new Blob([svgString], { type: 'image/svg+xml' });
+    const url = URL.createObjectURL(blob);
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      resolve(img);
+    };
+    img.onerror = reject;
+    img.src = url;
+  });
+}
+
+/**
+ * Remplace les placeholders dans le SVG avec les vraies données
+ */
+function customizeSVGTemplate(
+  svgContent: string,
+  options: {
+    restaurantName: string;
+    photoDataUrl: string;
+    qrDataUrl: string;
+    date?: string;
+  }
+): string {
+  let customized = svgContent;
+
+  // Injecter la photo dans le masque
+  if (options.photoDataUrl) {
+    customized = customized.replace(
+      /id="photo-mask"/,
+      `id="photo-mask" href="${options.photoDataUrl}" preserveAspectRatio="xMidYMid slice"`
+    );
+    customized = customized.replace(
+      /id="receipt-photo-mask"/,
+      `id="receipt-photo-mask" href="${options.photoDataUrl}" preserveAspectRatio="xMidYMid slice"`
+    );
+    // Convertir rect en image
+    customized = customized.replace(
+      /<rect id="photo-mask"([^>]*)\/>/g,
+      `<image id="photo-mask"$1/>`
+    );
+    customized = customized.replace(
+      /<rect id="receipt-photo-mask"([^>]*)\/>/g,
+      `<image id="receipt-photo-mask"$1/>`
+    );
+  }
+
+  // Injecter le QR code
+  if (options.qrDataUrl) {
+    customized = customized.replace(
+      /id="qr-placeholder"/,
+      `id="qr-placeholder" href="${options.qrDataUrl}"`
+    );
+    customized = customized.replace(
+      /id="receipt-qr-placeholder"/,
+      `id="receipt-qr-placeholder" href="${options.qrDataUrl}"`
+    );
+    // Convertir rect en image
+    customized = customized.replace(
+      /<rect id="qr-placeholder"([^>]*)\/>/g,
+      `<image id="qr-placeholder"$1/>`
+    );
+    customized = customized.replace(
+      /<rect id="receipt-qr-placeholder"([^>]*)\/>/g,
+      `<image id="receipt-qr-placeholder"$1/>`
+    );
+  }
+
+  // Remplacer le nom du restaurant
+  customized = customized.replace(
+    /<text id="restaurant-name"([^>]*)>.*?<\/text>/,
+    `<text id="restaurant-name"$1>${options.restaurantName}</text>`
+  );
+  customized = customized.replace(
+    /<text id="receipt-restaurant"([^>]*)>.*?<\/text>/,
+    `<text id="receipt-restaurant"$1>${options.restaurantName.toUpperCase()}</text>`
+  );
+
+  // Ajouter la date
+  const date = options.date || new Date().toLocaleDateString('fr-FR');
+  customized = customized.replace(
+    /<text id="date-stamp"([^>]*)>.*?<\/text>/,
+    `<text id="date-stamp"$1>${date}</text>`
+  );
+
+  const datetime = new Date().toLocaleString('fr-FR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+  customized = customized.replace(
+    /<text id="receipt-datetime"([^>]*)>.*?<\/text>/,
+    `<text id="receipt-datetime"$1>${datetime}</text>`
+  );
+
+  return customized;
+}
+
+/**
+ * Mode A : Standard Frame
+ * Photo plein écran avec cadre blanc simple
+ */
+async function generateStandardFrame(options: SocialImageOptions): Promise<string> {
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d')!;
 
-  // Dimensions Instagram Story (1080x1920)
+  // Haute résolution Instagram Story
   canvas.width = 1080;
   canvas.height = 1920;
 
   try {
-    // 1. Charger l'image webcam
+    // 1. Charger la photo webcam
     const webcamImg = await loadImage(options.webcamImageSrc);
 
-    // 2. Dessiner l'image (crop center)
+    // 2. Dessiner la photo (cover - remplir tout l'écran)
     const scale = Math.max(canvas.width / webcamImg.width, canvas.height / webcamImg.height);
     const x = (canvas.width - webcamImg.width * scale) / 2;
     const y = (canvas.height - webcamImg.height * scale) / 2;
     ctx.drawImage(webcamImg, x, y, webcamImg.width * scale, webcamImg.height * scale);
 
-    // 3. Cadre blanc autour (bordure)
+    // 3. Cadre blanc élégant
     const frameWidth = 40;
     ctx.strokeStyle = 'white';
     ctx.lineWidth = frameWidth;
     ctx.strokeRect(frameWidth / 2, frameWidth / 2, canvas.width - frameWidth, canvas.height - frameWidth);
 
-    // 4. Footer avec nom du restaurant
-    const footerHeight = 200;
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    // 4. Footer avec nom restaurant et QR
+    const footerHeight = 240;
+    const gradient = ctx.createLinearGradient(0, canvas.height - footerHeight, 0, canvas.height);
+    gradient.addColorStop(0, 'rgba(0, 0, 0, 0.8)');
+    gradient.addColorStop(1, 'rgba(0, 0, 0, 0.95)');
+    ctx.fillStyle = gradient;
     ctx.fillRect(0, canvas.height - footerHeight, canvas.width, footerHeight);
 
-    // Logo (si disponible)
+    // Logo restaurant (si disponible)
     if (options.restaurantLogo) {
       try {
         const logo = await loadImage(options.restaurantLogo);
-        const logoSize = 80;
+        const logoSize = 100;
         ctx.drawImage(
           logo,
           canvas.width / 2 - logoSize / 2,
@@ -100,38 +217,41 @@ async function generateStandardFrame(
           logoSize,
           logoSize
         );
-      } catch (e) {
-        console.warn('Logo loading failed:', e);
+      } catch (err) {
+        console.warn('[StandardFrame] Logo load failed:', err);
       }
     }
 
-    // Texte restaurant
+    // Nom restaurant
     ctx.fillStyle = 'white';
-    ctx.font = 'bold 48px sans-serif';
+    ctx.font = 'bold 48px Arial, sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText(options.restaurantName, canvas.width / 2, canvas.height - 80);
+    ctx.fillText(options.restaurantName, canvas.width / 2, canvas.height - footerHeight + 150);
 
-    // QR Code dans le coin
-    const qrCode = await generateQRCode(options.menuUrl, 120);
+    // QR Code
+    const qrCode = await generateQRCode(options.menuUrl, 140);
     if (qrCode) {
       const qrImg = await loadImage(qrCode);
-      ctx.drawImage(qrImg, canvas.width - 140, canvas.height - 140, 120, 120);
+      ctx.drawImage(qrImg, canvas.width / 2 - 70, canvas.height - 150, 140, 140);
     }
 
-    return canvas.toDataURL('image/jpeg', 0.92);
+    // Message
+    ctx.font = '24px Arial, sans-serif';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+    ctx.fillText('Scannez pour commander', canvas.width / 2, canvas.height - 15);
+
+    return canvas.toDataURL('image/jpeg', 0.95);
   } catch (error) {
-    console.error('Standard Frame generation error:', error);
+    console.error('[StandardFrame] Error:', error);
     throw error;
   }
 }
 
 /**
- * Mode B : Foodie Passport
- * Style Polaroid avec texte manuscrit "Certified Tasty"
+ * Mode B : Foodie Passport (Template SVG)
+ * Cadre polaroid chic avec texte manuscrit
  */
-async function generateFoodiePassport(
-  options: SocialImageOptions
-): Promise<string> {
+async function generateFoodiePassport(options: SocialImageOptions): Promise<string> {
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d')!;
 
@@ -139,92 +259,40 @@ async function generateFoodiePassport(
   canvas.height = 1920;
 
   try {
-    // Background dégradé
-    const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-    gradient.addColorStop(0, options.primaryColor || '#FF6B6B');
-    gradient.addColorStop(1, '#4ECDC4');
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    // 1. Générer le QR code
+    const qrCode = await generateQRCode(options.menuUrl, 200);
 
-    // Polaroid blanc
-    const polaroidWidth = 900;
-    const polaroidHeight = 1100;
-    const polaroidX = (canvas.width - polaroidWidth) / 2;
-    const polaroidY = 200;
+    // 2. Charger le template SVG
+    const svgTemplate = await loadSVGTemplate('/templates/passport-frame.svg');
 
-    // Ombre du polaroid
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
-    ctx.shadowBlur = 40;
-    ctx.shadowOffsetY = 20;
-
-    ctx.fillStyle = 'white';
-    ctx.fillRect(polaroidX, polaroidY, polaroidWidth, polaroidHeight);
-
-    ctx.shadowColor = 'transparent';
-
-    // Photo dans le polaroid
-    const photoMargin = 40;
-    const photoWidth = polaroidWidth - photoMargin * 2;
-    const photoHeight = 800;
-
-    const webcamImg = await loadImage(options.webcamImageSrc);
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(polaroidX + photoMargin, polaroidY + photoMargin, photoWidth, photoHeight);
-    ctx.clip();
-
-    const scale = Math.max(photoWidth / webcamImg.width, photoHeight / webcamImg.height);
-    const x = polaroidX + photoMargin + (photoWidth - webcamImg.width * scale) / 2;
-    const y = polaroidY + photoMargin + (photoHeight - webcamImg.height * scale) / 2;
-    ctx.drawImage(webcamImg, x, y, webcamImg.width * scale, webcamImg.height * scale);
-
-    ctx.restore();
-
-    // Texte manuscrit en bas du polaroid
-    ctx.fillStyle = '#333';
-    ctx.font = 'italic 42px serif';
-    ctx.textAlign = 'center';
-
-    const date = new Date().toLocaleDateString('fr-FR', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
+    // 3. Personnaliser le SVG avec les données
+    const customizedSVG = customizeSVGTemplate(svgTemplate, {
+      restaurantName: options.restaurantName,
+      photoDataUrl: options.webcamImageSrc,
+      qrDataUrl: qrCode,
+      date: new Date().toLocaleDateString('fr-FR'),
     });
 
-    ctx.fillText('✨ Certified Tasty ✨', canvas.width / 2, polaroidY + photoHeight + 140);
-    ctx.font = 'italic 36px serif';
-    ctx.fillText(`at ${options.restaurantName}`, canvas.width / 2, polaroidY + photoHeight + 190);
-    ctx.font = '28px sans-serif';
-    ctx.fillStyle = '#666';
-    ctx.fillText(date, canvas.width / 2, polaroidY + photoHeight + 240);
+    // 4. Convertir SVG en Image
+    const svgImage = await svgStringToImage(customizedSVG);
 
-    // QR Code en bas à droite du polaroid
-    const qrCode = await generateQRCode(options.menuUrl, 100);
-    if (qrCode) {
-      const qrImg = await loadImage(qrCode);
-      ctx.drawImage(
-        qrImg,
-        polaroidX + polaroidWidth - 130,
-        polaroidY + polaroidHeight - 130,
-        100,
-        100
-      );
-    }
+    // 5. Dessiner sur le canvas à haute résolution
+    ctx.drawImage(svgImage, 0, 0, canvas.width, canvas.height);
 
-    return canvas.toDataURL('image/jpeg', 0.92);
+    // 6. Export haute qualité
+    return canvas.toDataURL('image/jpeg', 0.95);
   } catch (error) {
-    console.error('Foodie Passport generation error:', error);
-    throw error;
+    console.error('[FoodiePassport] Error:', error);
+    // Fallback to standard frame
+    return generateStandardFrame(options);
   }
 }
 
 /**
- * Mode C : Receipt Aesthetic
- * Design ticket de caisse avec photo à gauche
+ * Mode C : Receipt Aesthetic (Template SVG)
+ * Style ticket de caisse rétro
  */
-async function generateReceiptAesthetic(
-  options: SocialImageOptions
-): Promise<string> {
+async function generateReceiptAesthetic(options: SocialImageOptions): Promise<string> {
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d')!;
 
@@ -232,161 +300,60 @@ async function generateReceiptAesthetic(
   canvas.height = 1920;
 
   try {
-    // Background blanc cassé (papier)
-    ctx.fillStyle = '#F5F5DC';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    // 1. Générer le QR code
+    const qrCode = await generateQRCode(options.menuUrl, 200);
 
-    // Split vertical : Photo à gauche (40%), Receipt à droite (60%)
-    const splitX = canvas.width * 0.4;
+    // 2. Charger le template SVG
+    const svgTemplate = await loadSVGTemplate('/templates/receipt-texture.svg');
 
-    // 1. Photo à gauche (crop vertical)
-    const webcamImg = await loadImage(options.webcamImageSrc);
-    const photoScale = Math.max(splitX / webcamImg.width, canvas.height / webcamImg.height);
-    const photoX = (splitX - webcamImg.width * photoScale) / 2;
-    const photoY = (canvas.height - webcamImg.height * photoScale) / 2;
-
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(0, 0, splitX, canvas.height);
-    ctx.clip();
-    ctx.drawImage(webcamImg, photoX, photoY, webcamImg.width * photoScale, webcamImg.height * photoScale);
-    ctx.restore();
-
-    // Bordure pointillée
-    ctx.setLineDash([20, 15]);
-    ctx.strokeStyle = '#999';
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(splitX, 0);
-    ctx.lineTo(splitX, canvas.height);
-    ctx.stroke();
-    ctx.setLineDash([]);
-
-    // 2. Receipt à droite
-    const receiptX = splitX + 60;
-    const receiptWidth = canvas.width - receiptX - 60;
-
-    // Header du ticket
-    ctx.fillStyle = '#000';
-    ctx.font = 'bold 48px monospace';
-    ctx.textAlign = 'left';
-    ctx.fillText('═══════════════', receiptX, 150);
-    ctx.font = 'bold 56px monospace';
-    ctx.fillText('RECEIPT', receiptX, 230);
-    ctx.font = 'bold 48px monospace';
-    ctx.fillText('═══════════════', receiptX, 280);
-
-    // Nom du restaurant
-    ctx.font = '42px sans-serif';
-    ctx.fillText(options.restaurantName.toUpperCase(), receiptX, 380);
-
-    // Date
-    const now = new Date();
-    const dateStr = now.toLocaleString('fr-FR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-    ctx.font = '32px monospace';
-    ctx.fillStyle = '#666';
-    ctx.fillText(dateStr, receiptX, 450);
-
-    // Lignes du ticket (style ticket de caisse)
-    const items = [
-      { label: '✨ Ambiance', value: '⭐⭐⭐⭐⭐' },
-      { label: '🍽️  Plats', value: 'Délicieux' },
-      { label: '🍷 Good Vibes', value: '100%' },
-      { label: '😊 Sourires', value: 'Illimités' },
-      { label: '📸 Moments', value: 'Inoubliables' },
-    ];
-
-    let y = 580;
-    ctx.fillStyle = '#000';
-    ctx.font = '38px monospace';
-
-    items.forEach((item) => {
-      ctx.fillText(item.label, receiptX, y);
-      ctx.textAlign = 'right';
-      ctx.fillText(item.value, receiptX + receiptWidth, y);
-      ctx.textAlign = 'left';
-      y += 100;
-
-      // Ligne pointillée
-      ctx.strokeStyle = '#CCC';
-      ctx.setLineDash([5, 5]);
-      ctx.beginPath();
-      ctx.moveTo(receiptX, y - 30);
-      ctx.lineTo(receiptX + receiptWidth, y - 30);
-      ctx.stroke();
-      ctx.setLineDash([]);
+    // 3. Personnaliser le SVG
+    const customizedSVG = customizeSVGTemplate(svgTemplate, {
+      restaurantName: options.restaurantName,
+      photoDataUrl: options.webcamImageSrc,
+      qrDataUrl: qrCode,
     });
 
-    // Total
-    y += 50;
-    ctx.font = 'bold 52px monospace';
-    ctx.fillText('TOTAL:', receiptX, y);
-    ctx.textAlign = 'right';
-    ctx.fillStyle = options.primaryColor || '#FF4500';
-    ctx.fillText('Priceless', receiptX + receiptWidth, y);
-    ctx.textAlign = 'left';
+    // 4. Convertir SVG en Image
+    const svgImage = await svgStringToImage(customizedSVG);
 
-    // Footer avec QR
-    y += 150;
-    ctx.fillStyle = '#000';
-    ctx.font = '28px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('Scannez pour revivre', receiptX + receiptWidth / 2, y);
-    ctx.fillText('l\'expérience', receiptX + receiptWidth / 2, y + 40);
+    // 5. Dessiner sur canvas
+    ctx.drawImage(svgImage, 0, 0, canvas.width, canvas.height);
 
-    // QR Code centré en bas
-    const qrCode = await generateQRCode(options.menuUrl, 180);
-    if (qrCode) {
-      const qrImg = await loadImage(qrCode);
-      ctx.drawImage(
-        qrImg,
-        receiptX + receiptWidth / 2 - 90,
-        y + 70,
-        180,
-        180
-      );
-    }
-
-    // Texte "Merci de votre visite"
-    ctx.font = 'italic 36px serif';
-    ctx.fillStyle = '#666';
-    ctx.fillText('Merci de votre visite ! ❤️', receiptX + receiptWidth / 2, canvas.height - 100);
-
-    return canvas.toDataURL('image/jpeg', 0.92);
+    // 6. Export haute qualité
+    return canvas.toDataURL('image/jpeg', 0.95);
   } catch (error) {
-    console.error('Receipt Aesthetic generation error:', error);
-    throw error;
+    console.error('[ReceiptAesthetic] Error:', error);
+    // Fallback to standard frame
+    return generateStandardFrame(options);
   }
 }
 
 /**
- * Fonction principale : génère l'image sociale selon le template
+ * Point d'entrée principal - Génère l'image sociale finale
  */
-export async function generateSocialImage(
-  options: SocialImageOptions
-): Promise<string> {
-  switch (options.templateType) {
-    case 'standard':
-      return generateStandardFrame(options);
-    case 'passport':
-      return generateFoodiePassport(options);
-    case 'receipt':
-      return generateReceiptAesthetic(options);
-    default:
-      throw new Error(`Unknown template type: ${options.templateType}`);
+export async function generateSocialImage(options: SocialImageOptions): Promise<string> {
+  console.log('[SocialImageGenerator] Starting generation with template:', options.templateType);
+
+  try {
+    switch (options.templateType) {
+      case 'passport':
+        return await generateFoodiePassport(options);
+      case 'receipt':
+        return await generateReceiptAesthetic(options);
+      case 'standard':
+      default:
+        return await generateStandardFrame(options);
+    }
+  } catch (error) {
+    console.error('[SocialImageGenerator] Fatal error:', error);
+    throw error;
   }
 }
 
 /**
  * Télécharge l'image générée
  */
-export function downloadImage(dataUrl: string, filename: string = 'restotech-moment.jpg') {
+export function downloadImage(dataUrl: string, filename: string = 'moment.jpg'): void {
   const link = document.createElement('a');
   link.href = dataUrl;
   link.download = filename;
@@ -398,27 +365,28 @@ export function downloadImage(dataUrl: string, filename: string = 'restotech-mom
 /**
  * Partage l'image via Web Share API
  */
-export async function shareImage(dataUrl: string, restaurantName: string) {
+export async function shareImage(dataUrl: string, restaurantName: string): Promise<boolean> {
   try {
     // Convertir data URL en Blob
     const response = await fetch(dataUrl);
     const blob = await response.blob();
-    const file = new File([blob], 'restotech-moment.jpg', { type: 'image/jpeg' });
+    const file = new File([blob], `${restaurantName}-moment.jpg`, { type: 'image/jpeg' });
 
+    // Vérifier si Web Share API est disponible
     if (navigator.share && navigator.canShare({ files: [file] })) {
       await navigator.share({
-        files: [file],
         title: `Mon moment chez ${restaurantName}`,
         text: `Découvrez ${restaurantName} !`,
+        files: [file],
       });
       return true;
-    } else {
-      // Fallback : télécharger
-      downloadImage(dataUrl);
-      return false;
     }
+
+    // Fallback: télécharger l'image
+    downloadImage(dataUrl, `${restaurantName.toLowerCase().replace(/\s/g, '-')}-moment.jpg`);
+    return false;
   } catch (error) {
-    console.error('Share error:', error);
-    throw error;
+    console.error('[Share] Error:', error);
+    return false;
   }
 }

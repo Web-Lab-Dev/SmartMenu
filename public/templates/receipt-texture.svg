@@ -1,0 +1,163 @@
+<svg width="1080" height="1920" viewBox="0 0 1080 1920" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Receipt paper texture -->
+    <filter id="receipt-paper">
+      <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" seed="1"/>
+      <feColorMatrix type="saturate" values="0.1"/>
+      <feComponentTransfer>
+        <feFuncR type="linear" slope="0.05" intercept="0.95"/>
+        <feFuncG type="linear" slope="0.05" intercept="0.95"/>
+        <feFuncB type="linear" slope="0.05" intercept="0.92"/>
+        <feFuncA type="discrete" tableValues="1"/>
+      </feComponentTransfer>
+      <feBlend mode="multiply" in2="SourceGraphic"/>
+    </filter>
+
+    <!-- Crumpled paper effect -->
+    <filter id="crumpled">
+      <feTurbulence type="turbulence" baseFrequency="0.05" numOctaves="2" result="turbulence"/>
+      <feDisplacementMap in2="turbulence" in="SourceGraphic" scale="4" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+
+    <!-- Dot matrix print effect -->
+    <pattern id="dot-matrix" width="4" height="4" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="0.8" fill="black" opacity="0.05"/>
+    </pattern>
+
+    <!-- Thermal print fade -->
+    <linearGradient id="thermal-fade" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a1a;stop-opacity:1" />
+      <stop offset="95%" style="stop-color:#1a1a1a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1a1a1a;stop-opacity:0.5" />
+    </linearGradient>
+
+    <style>
+      .receipt-font {
+        font-family: 'Courier New', 'Consolas', monospace;
+        font-weight: bold;
+        letter-spacing: 0.05em;
+      }
+
+      .receipt-title {
+        font-family: 'Courier New', monospace;
+        font-weight: 900;
+        letter-spacing: 0.1em;
+      }
+    </style>
+  </defs>
+
+  <!-- Background with paper texture -->
+  <rect width="1080" height="1920" fill="#faf8f5" filter="url(#receipt-paper)"/>
+
+  <!-- Receipt paper with crumpled edges -->
+  <g filter="url(#crumpled)">
+    <rect x="140" y="60" width="800" height="1800" fill="white" filter="url(#receipt-paper)"/>
+
+    <!-- Perforated top edge -->
+    <line x1="140" y1="80" x2="940" y2="80" stroke="#d0d0d0" stroke-width="1" stroke-dasharray="8 4"/>
+
+    <!-- Perforated bottom edge -->
+    <line x1="140" y1="1840" x2="940" y2="1840" stroke="#d0d0d0" stroke-width="1" stroke-dasharray="8 4"/>
+  </g>
+
+  <!-- Dot matrix overlay for vintage look -->
+  <rect x="140" y="80" width="800" height="1760" fill="url(#dot-matrix)"/>
+
+  <!-- Receipt content -->
+  <g fill="url(#thermal-fade)">
+    <!-- Header -->
+    <text x="540" y="180" text-anchor="middle" class="receipt-title" font-size="56">
+      ═══════════════
+    </text>
+
+    <text id="receipt-title" x="540" y="260" text-anchor="middle" class="receipt-title" font-size="64">
+      FOODIE RECEIPT
+    </text>
+
+    <text x="540" y="310" text-anchor="middle" class="receipt-title" font-size="56">
+      ═══════════════
+    </text>
+
+    <!-- Restaurant name -->
+    <text id="receipt-restaurant" x="540" y="400" text-anchor="middle" class="receipt-font" font-size="42">
+      RESTAURANT NAME
+    </text>
+
+    <!-- Date and time -->
+    <text id="receipt-datetime" x="540" y="450" text-anchor="middle" class="receipt-font" font-size="28" opacity="0.7">
+      01/01/2024 - 12:00 PM
+    </text>
+
+    <!-- Separator -->
+    <line x1="200" y1="480" x2="880" y2="480" stroke="currentColor" stroke-width="2" stroke-dasharray="10 5"/>
+
+    <!-- Photo placeholder area (will be filled with actual photo) -->
+    <rect id="receipt-photo-mask" x="240" y="520" width="600" height="800" fill="#e8e8e8" rx="4"/>
+
+    <!-- Separator -->
+    <line x1="200" y1="1350" x2="880" y2="1350" stroke="currentColor" stroke-width="2" stroke-dasharray="10 5"/>
+
+    <!-- Footer text -->
+    <text x="540" y="1420" text-anchor="middle" class="receipt-font" font-size="38">
+      MEMORY CAPTURED
+    </text>
+
+    <text x="540" y="1480" text-anchor="middle" class="receipt-font" font-size="32" opacity="0.8">
+      *** THIS MOMENT ***
+    </text>
+
+    <text x="540" y="1530" text-anchor="middle" class="receipt-font" font-size="32" opacity="0.8">
+      *** WAS DELICIOUS ***
+    </text>
+
+    <!-- QR Code area -->
+    <rect id="receipt-qr-placeholder" x="440" y="1600" width="200" height="200" fill="#e8e8e8" rx="4"/>
+
+    <!-- Bottom text -->
+    <text x="540" y="1840" text-anchor="middle" class="receipt-font" font-size="24" opacity="0.6">
+      SCAN TO ORDER AGAIN
+    </text>
+  </g>
+
+  <!-- Barcode effect at bottom -->
+  <g opacity="0.3">
+    <rect x="300" y="1870" width="4" height="30" fill="black"/>
+    <rect x="310" y="1870" width="8" height="30" fill="black"/>
+    <rect x="324" y="1870" width="4" height="30" fill="black"/>
+    <rect x="334" y="1870" width="12" height="30" fill="black"/>
+    <rect x="352" y="1870" width="4" height="30" fill="black"/>
+    <rect x="362" y="1870" width="8" height="30" fill="black"/>
+    <rect x="376" y="1870" width="4" height="30" fill="black"/>
+    <!-- Continue pattern -->
+    <rect x="400" y="1870" width="8" height="30" fill="black"/>
+    <rect x="414" y="1870" width="4" height="30" fill="black"/>
+    <rect x="424" y="1870" width="12" height="30" fill="black"/>
+    <rect x="442" y="1870" width="4" height="30" fill="black"/>
+    <rect x="452" y="1870" width="8" height="30" fill="black"/>
+    <rect x="466" y="1870" width="4" height="30" fill="black"/>
+    <rect x="476" y="1870" width="12" height="30" fill="black"/>
+    <rect x="494" y="1870" width="4" height="30" fill="black"/>
+    <rect x="504" y="1870" width="8" height="30" fill="black"/>
+    <rect x="518" y="1870" width="4" height="30" fill="black"/>
+    <rect x="528" y="1870" width="12" height="30" fill="black"/>
+    <rect x="546" y="1870" width="4" height="30" fill="black"/>
+    <rect x="556" y="1870" width="8" height="30" fill="black"/>
+    <rect x="570" y="1870" width="4" height="30" fill="black"/>
+    <rect x="580" y="1870" width="12" height="30" fill="black"/>
+    <rect x="598" y="1870" width="4" height="30" fill="black"/>
+    <rect x="608" y="1870" width="8" height="30" fill="black"/>
+    <rect x="622" y="1870" width="4" height="30" fill="black"/>
+    <rect x="632" y="1870" width="12" height="30" fill="black"/>
+    <rect x="650" y="1870" width="4" height="30" fill="black"/>
+    <rect x="660" y="1870" width="8" height="30" fill="black"/>
+    <rect x="674" y="1870" width="4" height="30" fill="black"/>
+    <rect x="684" y="1870" width="12" height="30" fill="black"/>
+    <rect x="702" y="1870" width="4" height="30" fill="black"/>
+    <rect x="712" y="1870" width="8" height="30" fill="black"/>
+    <rect x="726" y="1870" width="4" height="30" fill="black"/>
+    <rect x="736" y="1870" width="12" height="30" fill="black"/>
+    <rect x="754" y="1870" width="4" height="30" fill="black"/>
+    <rect x="764" y="1870" width="8" height="30" fill="black"/>
+    <rect x="778" y="1870" width="4" height="30" fill="black"/>
+  </g>
+</svg>

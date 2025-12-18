@@ -1,0 +1,94 @@
+<svg width="1080" height="1920" viewBox="0 0 1080 1920" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Handwritten font style -->
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@700&amp;display=swap');
+
+      .handwritten {
+        font-family: 'Caveat', cursive;
+        font-weight: 700;
+      }
+
+      .mono {
+        font-family: 'Courier New', monospace;
+        font-weight: bold;
+      }
+    </style>
+
+    <!-- Paper texture -->
+    <filter id="paper-texture">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" />
+      <feColorMatrix type="saturate" values="0" />
+      <feComponentTransfer>
+        <feFuncA type="discrete" tableValues="0 0 0 0 1" />
+      </feComponentTransfer>
+      <feBlend mode="overlay" in="SourceGraphic" />
+    </filter>
+
+    <!-- Soft shadow -->
+    <filter id="soft-shadow">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="8"/>
+      <feOffset dx="0" dy="4" result="offsetblur"/>
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.15"/>
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background gradient -->
+  <rect width="1080" height="1920" fill="#f8f5f0"/>
+
+  <!-- Polaroid frame with shadow -->
+  <g filter="url(#soft-shadow)">
+    <!-- White polaroid border -->
+    <rect x="90" y="280" width="900" height="1140" fill="white" rx="8"/>
+
+    <!-- Photo area (will be replaced with actual photo) -->
+    <rect id="photo-mask" x="120" y="310" width="840" height="1050" fill="#e0e0e0" rx="4"/>
+
+    <!-- Bottom caption area -->
+    <rect x="120" y="1360" width="840" height="60" fill="white"/>
+  </g>
+
+  <!-- Decorative elements -->
+  <g opacity="0.6">
+    <!-- Stamp-like decorations -->
+    <circle cx="200" cy="200" r="60" fill="none" stroke="#d4a574" stroke-width="8" stroke-dasharray="4 8"/>
+    <text x="200" y="210" text-anchor="middle" class="mono" font-size="24" fill="#d4a574">CERTIFIED</text>
+
+    <!-- Wax seal effect -->
+    <circle cx="880" cy="1500" r="50" fill="#c41e3a" opacity="0.7"/>
+    <text x="880" y="1510" text-anchor="middle" class="handwritten" font-size="36" fill="white">✓</text>
+  </g>
+
+  <!-- Main handwritten text (will be customized) -->
+  <text id="main-text" x="540" y="180" text-anchor="middle" class="handwritten" font-size="72" fill="#2c2c2c">
+    Foodie Passport
+  </text>
+
+  <text id="subtitle-text" x="540" y="240" text-anchor="middle" class="handwritten" font-size="42" fill="#6b6b6b">
+    Certified Tasty Moment
+  </text>
+
+  <!-- Bottom caption (restaurant name) -->
+  <text id="restaurant-name" x="540" y="1405" text-anchor="middle" class="handwritten" font-size="48" fill="#2c2c2c">
+    Restaurant Name
+  </text>
+
+  <!-- Date stamp -->
+  <text id="date-stamp" x="540" y="1600" text-anchor="middle" class="mono" font-size="28" fill="#888">
+    2024-01-01
+  </text>
+
+  <!-- QR Code placeholder -->
+  <rect id="qr-placeholder" x="440" y="1650" width="200" height="200" fill="#e0e0e0" rx="8"/>
+
+  <!-- Bottom text -->
+  <text x="540" y="1880" text-anchor="middle" class="mono" font-size="24" fill="#999">
+    Scan to visit menu
+  </text>
+</svg>

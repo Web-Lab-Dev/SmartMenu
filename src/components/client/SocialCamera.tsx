@@ -84,48 +84,56 @@ export function SocialCamera({
     stickerType: selectedSticker,
   });
 
-  // Capture photo avec fusion AR
+  // Capture photo HAUTE FIDÉLITÉ à résolution native
   const capturePhoto = useCallback(async () => {
-    let finalImageSrc = webcamRef.current?.getScreenshot();
-    if (!finalImageSrc) {
+    if (!webcamRef.current || !videoRef.current) {
       toast.error('Erreur lors de la capture');
       return;
     }
 
-    // Si un sticker AR est actif, fusionner avec l'overlay canvas
-    if (selectedSticker !== 'none' && arCanvasRef.current && videoRef.current) {
-      try {
-        const mergeCanvas = document.createElement('canvas');
-        const video = videoRef.current;
-        const arCanvas = arCanvasRef.current;
+    const video = videoRef.current;
 
-        mergeCanvas.width = video.videoWidth || video.clientWidth;
-        mergeCanvas.height = video.videoHeight || video.clientHeight;
+    // Créer canvas à la RÉSOLUTION NATIVE de la caméra (pas la taille d'affichage)
+    const nativeCanvas = document.createElement('canvas');
+    const nativeWidth = video.videoWidth || 1080;
+    const nativeHeight = video.videoHeight || 1920;
 
-        const ctx = mergeCanvas.getContext('2d')!;
+    nativeCanvas.width = nativeWidth;
+    nativeCanvas.height = nativeHeight;
 
-        // Dessiner la vidéo
-        const webcamImage = new Image();
-        await new Promise((resolve, reject) => {
-          webcamImage.onload = resolve;
-          webcamImage.onerror = reject;
-          webcamImage.src = finalImageSrc!;
-        });
-        ctx.drawImage(webcamImage, 0, 0, mergeCanvas.width, mergeCanvas.height);
+    const ctx = nativeCanvas.getContext('2d')!;
 
-        // Superposer le canvas AR (stickers)
-        if (arCanvas.width > 0 && arCanvas.height > 0) {
-          ctx.drawImage(arCanvas, 0, 0, mergeCanvas.width, mergeCanvas.height);
-        }
+    console.log('[Capture] Native resolution:', nativeWidth, 'x', nativeHeight);
 
-        finalImageSrc = mergeCanvas.toDataURL('image/jpeg', 0.95);
-      } catch (error) {
-        console.error('[Capture] AR merge error:', error);
-        // Continue with normal capture on error
+    try {
+      // 1. Dessiner la frame vidéo à résolution native
+      ctx.drawImage(video, 0, 0, nativeWidth, nativeHeight);
+
+      // 2. Appliquer le filtre CSS si sélectionné
+      const filter = CSS_FILTERS.find((f) => f.id === selectedFilter);
+      if (filter && filter.css !== 'none') {
+        ctx.filter = filter.css;
+        ctx.drawImage(nativeCanvas, 0, 0);
+        ctx.filter = 'none';
       }
-    }
 
-    setCapturedImage(finalImageSrc);
+      // 3. Superposer les stickers AR si actifs
+      if (selectedSticker !== 'none' && arCanvasRef.current) {
+        const arCanvas = arCanvasRef.current;
+        if (arCanvas.width > 0 && arCanvas.height > 0) {
+          // Redimensionner l'overlay AR à la résolution native
+          ctx.drawImage(arCanvas, 0, 0, nativeWidth, nativeHeight);
+        }
+      }
+
+      // 4. Export HAUTE QUALITÉ (qualité 0.95 - proche lossless)
+      const finalImageSrc = nativeCanvas.toDataURL('image/jpeg', 0.95);
+      setCapturedImage(finalImageSrc);
+    } catch (error) {
+      console.error('[Capture] Error:', error);
+      toast.error('Erreur lors de la capture');
+      return;
+    }
 
     // Flash blanc
     const flash = document.createElement('div');
@@ -244,21 +252,26 @@ export function SocialCamera({
           {/* Webcam ou Image capturée */}
           {!capturedImage ? (
             <>
-              {/* Webcam avec ref pour AR */}
-              <div className="relative w-full h-full">
+              {/* Webcam avec ref pour AR - Configuration Native Anti-Zoom */}
+              <div className="relative w-full h-full bg-black overflow-hidden">
                 <Webcam
                   ref={webcamRef}
                   audio={false}
                   screenshotFormat="image/jpeg"
+                  screenshotQuality={1.0}
                   videoConstraints={{
                     facingMode,
-                    width: 1080,
-                    height: 1920,
+                    aspectRatio: 9 / 16, // Force portrait natif
+                    width: { ideal: 1080, min: 720 },
+                    height: { ideal: 1920, min: 1280 },
                   }}
                   style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
                     width: '100%',
                     height: '100%',
-                    objectFit: 'cover',
+                    objectFit: 'contain', // CRUCIAL: évite le zoom excessif
                     filter: CSS_FILTERS.find((f) => f.id === selectedFilter)?.css || 'none',
                   }}
                   onUserMedia={(stream) => {
@@ -266,6 +279,7 @@ export function SocialCamera({
                       const video = (webcamRef.current as any).video;
                       if (video) {
                         videoRef.current = video;
+                        console.log('[SocialCamera] Video resolution:', video.videoWidth, 'x', video.videoHeight);
                       }
                     }
                   }}
