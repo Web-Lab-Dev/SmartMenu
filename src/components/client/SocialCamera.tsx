@@ -140,8 +140,46 @@ export function SocialCamera({
       // 1. Dessiner la frame vidéo à résolution native
       ctx.drawImage(video, 0, 0, nativeWidth, nativeHeight);
 
-      console.log('[Capture] Step 2: Applying filters...');
-      // 2. Appliquer le filtre CSS si sélectionné
+      console.log('[Capture] Step 2: Image enhancement (brightness & contrast)...');
+      // 2. TRAITEMENT D'IMAGE - Corriger l'exposition automatiquement
+      const imageData = ctx.getImageData(0, 0, nativeWidth, nativeHeight);
+      const data = imageData.data;
+
+      // Paramètres d'amélioration
+      const brightnessBoost = 25; // +25 luminosité
+      const contrastFactor = 1.1; // +10% contraste
+      const saturationBoost = 1.1; // +10% saturation (optionnel)
+
+      for (let i = 0; i < data.length; i += 4) {
+        // R, G, B à indices i, i+1, i+2
+
+        // CONTRASTE: Décaler vers le milieu puis amplifier
+        let r = data[i];
+        let g = data[i + 1];
+        let b = data[i + 2];
+
+        // Appliquer contraste (centré sur 128)
+        r = ((r - 128) * contrastFactor) + 128;
+        g = ((g - 128) * contrastFactor) + 128;
+        b = ((b - 128) * contrastFactor) + 128;
+
+        // LUMINOSITÉ: Ajouter offset
+        r += brightnessBoost;
+        g += brightnessBoost;
+        b += brightnessBoost;
+
+        // Clamper entre 0-255
+        data[i] = Math.max(0, Math.min(255, r));
+        data[i + 1] = Math.max(0, Math.min(255, g));
+        data[i + 2] = Math.max(0, Math.min(255, b));
+      }
+
+      // Réécrire l'image traitée sur le canvas
+      ctx.putImageData(imageData, 0, 0);
+      console.log('[Capture] Image enhanced successfully');
+
+      console.log('[Capture] Step 3: Applying CSS filters...');
+      // 3. Appliquer le filtre CSS si sélectionné
       const filter = CSS_FILTERS.find((f) => f.id === selectedFilter);
       if (filter && filter.css !== 'none') {
         ctx.filter = filter.css;
@@ -149,8 +187,8 @@ export function SocialCamera({
         ctx.filter = 'none';
       }
 
-      console.log('[Capture] Step 3: Adding AR stickers...');
-      // 3. Superposer les stickers AR si actifs
+      console.log('[Capture] Step 4: Adding AR stickers...');
+      // 4. Superposer les stickers AR si actifs
       if (selectedSticker !== 'none' && arCanvasRef.current) {
         const arCanvas = arCanvasRef.current;
         console.log('[Capture] AR Canvas dimensions:', arCanvas.width, 'x', arCanvas.height);
@@ -160,8 +198,8 @@ export function SocialCamera({
         }
       }
 
-      console.log('[Capture] Step 4: Exporting to data URL...');
-      // 4. Export HAUTE QUALITÉ (qualité 0.95 - proche lossless)
+      console.log('[Capture] Step 5: Exporting to data URL...');
+      // 5. Export HAUTE QUALITÉ (qualité 0.95 - proche lossless)
       finalImageSrc = nativeCanvas.toDataURL('image/jpeg', 0.95);
       console.log('[Capture] Data URL length:', finalImageSrc.length);
       setCapturedImage(finalImageSrc);
