@@ -66,6 +66,8 @@ export class WaiterCallService {
     restaurantId: string,
     onCallsUpdate: (calls: WaiterCall[]) => void
   ): () => void {
+    console.log('[WaiterCallService] Setting up subscription for restaurantId:', restaurantId);
+
     const db = getDb();
     const q = query(
       collection(db, 'waiterCalls'),
@@ -74,11 +76,16 @@ export class WaiterCallService {
       orderBy('createdAt', 'desc')
     );
 
+    console.log('[WaiterCallService] Query created, setting up onSnapshot listener');
+
     const unsubscribe = onSnapshot(
       q,
       (snapshot) => {
+        console.log('[WaiterCallService] Snapshot received, docs count:', snapshot.docs.length);
+
         const calls: WaiterCall[] = snapshot.docs.map((doc) => {
           const data = doc.data();
+          console.log('[WaiterCallService] Processing call doc:', doc.id, data);
           return {
             id: doc.id,
             restaurantId: data.restaurantId,
@@ -91,6 +98,7 @@ export class WaiterCallService {
           };
         });
 
+        console.log('[WaiterCallService] Mapped calls:', calls);
         onCallsUpdate(calls);
       },
       (error) => {
@@ -98,6 +106,7 @@ export class WaiterCallService {
       }
     );
 
+    console.log('[WaiterCallService] Subscription setup complete');
     return unsubscribe;
   }
 

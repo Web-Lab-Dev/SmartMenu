@@ -14,6 +14,8 @@ export default function Layout({ children }: { children: ReactNode }) {
   const [isAIAssistantOpen, setIsAIAssistantOpen] = useState(false);
   const { restaurantId } = useAdminAuth();
 
+  console.log('[AdminLayout] Rendering with restaurantId:', restaurantId);
+
   return (
     <>
       <AdminLayout
@@ -30,7 +32,14 @@ export default function Layout({ children }: { children: ReactNode }) {
       />
 
       {/* Waiter Calls Notifications */}
-      {restaurantId && <WaiterCallsPanel restaurantId={restaurantId} />}
+      {restaurantId ? (
+        <>
+          {console.log('[AdminLayout] Rendering WaiterCallsPanel with restaurantId:', restaurantId)}
+          <WaiterCallsPanel restaurantId={restaurantId} />
+        </>
+      ) : (
+        console.log('[AdminLayout] No restaurantId, not rendering WaiterCallsPanel')
+      )}
     </>
   );
 }

@@ -20,16 +20,27 @@ export function WaiterCallsPanel({ restaurantId }: WaiterCallsPanelProps) {
   const [calls, setCalls] = useState<WaiterCall[]>([]);
 
   useEffect(() => {
-    if (!restaurantId) return;
+    console.log('[WaiterCallsPanel] Component mounted with restaurantId:', restaurantId);
+
+    if (!restaurantId) {
+      console.warn('[WaiterCallsPanel] No restaurantId provided, skipping subscription');
+      return;
+    }
+
+    console.log('[WaiterCallsPanel] Setting up subscription for restaurantId:', restaurantId);
 
     const unsubscribe = WaiterCallService.subscribeToRestaurantCalls(
       restaurantId,
       (updatedCalls) => {
+        console.log('[WaiterCallsPanel] Received calls update:', updatedCalls);
         setCalls(updatedCalls);
       }
     );
 
-    return () => unsubscribe();
+    return () => {
+      console.log('[WaiterCallsPanel] Unsubscribing from calls');
+      unsubscribe();
+    };
   }, [restaurantId]);
 
   const handleAcknowledge = async (callId: string) => {
@@ -48,7 +59,14 @@ export function WaiterCallsPanel({ restaurantId }: WaiterCallsPanelProps) {
     }
   };
 
-  if (calls.length === 0) return null;
+  console.log('[WaiterCallsPanel] Rendering with calls count:', calls.length);
+
+  if (calls.length === 0) {
+    console.log('[WaiterCallsPanel] No calls to display, returning null');
+    return null;
+  }
+
+  console.log('[WaiterCallsPanel] Rendering', calls.length, 'call notification(s)');
 
   return (
     <div className="fixed top-20 right-4 z-50 w-80">
