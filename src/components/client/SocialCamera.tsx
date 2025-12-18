@@ -86,12 +86,19 @@ export function SocialCamera({
 
   // Capture photo HAUTE FIDÉLITÉ à résolution native
   const capturePhoto = useCallback(async () => {
+    console.log('[Capture] Starting capture...');
+    console.log('[Capture] webcamRef.current:', webcamRef.current);
+    console.log('[Capture] videoRef.current:', videoRef.current);
+
     if (!webcamRef.current || !videoRef.current) {
-      toast.error('Erreur lors de la capture');
+      console.error('[Capture] Missing refs - webcam:', !!webcamRef.current, 'video:', !!videoRef.current);
+      toast.error('Erreur: Caméra non initialisée');
       return;
     }
 
     const video = videoRef.current;
+    console.log('[Capture] Video element:', video);
+    console.log('[Capture] Video dimensions:', video.videoWidth, 'x', video.videoHeight);
 
     // Créer canvas à la RÉSOLUTION NATIVE de la caméra (pas la taille d'affichage)
     const nativeCanvas = document.createElement('canvas');
@@ -101,16 +108,23 @@ export function SocialCamera({
     nativeCanvas.width = nativeWidth;
     nativeCanvas.height = nativeHeight;
 
-    const ctx = nativeCanvas.getContext('2d')!;
+    const ctx = nativeCanvas.getContext('2d');
+    if (!ctx) {
+      console.error('[Capture] Failed to get canvas context');
+      toast.error('Erreur: Canvas non disponible');
+      return;
+    }
 
     console.log('[Capture] Native resolution:', nativeWidth, 'x', nativeHeight);
 
     let finalImageSrc: string;
 
     try {
+      console.log('[Capture] Step 1: Drawing video to canvas...');
       // 1. Dessiner la frame vidéo à résolution native
       ctx.drawImage(video, 0, 0, nativeWidth, nativeHeight);
 
+      console.log('[Capture] Step 2: Applying filters...');
       // 2. Appliquer le filtre CSS si sélectionné
       const filter = CSS_FILTERS.find((f) => f.id === selectedFilter);
       if (filter && filter.css !== 'none') {
@@ -119,21 +133,27 @@ export function SocialCamera({
         ctx.filter = 'none';
       }
 
+      console.log('[Capture] Step 3: Adding AR stickers...');
       // 3. Superposer les stickers AR si actifs
       if (selectedSticker !== 'none' && arCanvasRef.current) {
         const arCanvas = arCanvasRef.current;
+        console.log('[Capture] AR Canvas dimensions:', arCanvas.width, 'x', arCanvas.height);
         if (arCanvas.width > 0 && arCanvas.height > 0) {
           // Redimensionner l'overlay AR à la résolution native
           ctx.drawImage(arCanvas, 0, 0, nativeWidth, nativeHeight);
         }
       }
 
+      console.log('[Capture] Step 4: Exporting to data URL...');
       // 4. Export HAUTE QUALITÉ (qualité 0.95 - proche lossless)
       finalImageSrc = nativeCanvas.toDataURL('image/jpeg', 0.95);
+      console.log('[Capture] Data URL length:', finalImageSrc.length);
       setCapturedImage(finalImageSrc);
+      console.log('[Capture] Image captured successfully');
     } catch (error) {
-      console.error('[Capture] Error:', error);
-      toast.error('Erreur lors de la capture');
+      console.error('[Capture] Error during capture:', error);
+      console.error('[Capture] Error stack:', error instanceof Error ? error.stack : 'No stack');
+      toast.error(`Erreur lors de la capture: ${error instanceof Error ? error.message : 'Unknown'}`);
       return;
     }
 
