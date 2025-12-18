@@ -5,7 +5,7 @@ import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { RestaurantService } from '@/services/RestaurantService';
 import type { Restaurant, RestaurantBranding } from '@/types/schema';
 import { QRCodeSVG } from 'qrcode.react';
-import { Save, QrCode, Printer, ExternalLink, Loader2, Palette, Instagram, Facebook, Globe, ChevronDown, Star } from 'lucide-react';
+import { Save, QrCode, Printer, ExternalLink, Loader2, Palette, Instagram, Facebook, Globe, ChevronDown } from 'lucide-react';
 import { doc, updateDoc } from 'firebase/firestore';
 import { getDb } from '@/lib/firebase';
 import { COLLECTIONS } from '@/lib/constants';
@@ -32,8 +32,6 @@ export default function SettingsPage() {
     socials: {},
   });
 
-  // Google Review URL (for Smart Review System)
-  const [googleReviewUrl, setGoogleReviewUrl] = useState('');
 
   // Color picker states
   const [showPrimaryPicker, setShowPrimaryPicker] = useState(false);
@@ -67,9 +65,6 @@ export default function SettingsPage() {
           radius: data.branding?.radius || 'md',
           socials: data.branding?.socials || {},
         });
-
-        // Initialize Google Review URL
-        setGoogleReviewUrl((data as any).googleReviewUrl || '');
       }
       setLoading(false);
     };
@@ -94,7 +89,6 @@ export default function SettingsPage() {
         'branding.fontFamily': brandingPreview.fontFamily || 'sans',
         'branding.radius': brandingPreview.radius || 'md',
         'branding.socials': brandingPreview.socials || {},
-        googleReviewUrl: googleReviewUrl.trim() || null,
         updatedAt: new Date(),
       });
 
@@ -434,31 +428,6 @@ export default function SettingsPage() {
                       placeholder="https://mon-restaurant.com"
                     />
                   </div>
-                </div>
-              </div>
-
-              {/* Google Review URL - Smart Review System */}
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  <div className="flex items-center gap-2">
-                    <Star className="w-4 h-4 text-yellow-500" />
-                    Lien Google Avis (Système Pare-Feu)
-                  </div>
-                </label>
-                <input
-                  type="url"
-                  value={googleReviewUrl}
-                  onChange={(e) => setGoogleReviewUrl(e.target.value)}
-                  className="w-full px-3 py-2 text-sm rounded-lg bg-gray-700 text-white border border-gray-600 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none transition-all"
-                  placeholder="https://search.google.com/local/writereview?placeid=..."
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  💡 Pour obtenir ce lien : Recherchez votre restaurant sur Google Maps → Cliquez sur &quot;Laisser un avis&quot; → Copiez l&apos;URL
-                </p>
-                <div className="mt-2 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
-                  <p className="text-xs text-blue-400 leading-relaxed">
-                    <strong>Système Intelligent :</strong> Les clients satisfaits (≥4⭐) seront redirigés vers Google pour poster un avis public. Les clients moins satisfaits (≤3⭐) laisseront leur feedback en interne, vous permettant de corriger les problèmes sans impacter votre e-réputation.
-                  </p>
                 </div>
               </div>
 
