@@ -8,12 +8,14 @@
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import type { Order } from '@/types/schema';
-import { Clock, MessageSquare } from 'lucide-react';
+import { Clock, MessageSquare, Check, ArrowRight } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
+import { useState } from 'react';
 
 interface OrderCardProps {
   order: Order;
   isDragging?: boolean;
+  onStatusChange?: (orderId: string, newStatus: string) => Promise<void>;
 }
 
 /**
@@ -23,10 +25,25 @@ interface OrderCardProps {
  * - List of items with quantities
  * - Customer notes
  * - Color-coded by status
+ * - Action buttons for status transitions
  */
-export function OrderCard({ order, isDragging = false }: OrderCardProps) {
+export function OrderCard({ order, isDragging = false, onStatusChange }: OrderCardProps) {
+  const [isProcessing, setIsProcessing] = useState(false);
   const isOld = Date.now() - order.createdAt.getTime() > 5 * 60 * 1000; // > 5 minutes
   const isPending = order.status === 'pending_validation';
+
+  const handleStatusChange = async (newStatus: string) => {
+    if (!onStatusChange || isProcessing) return;
+
+    setIsProcessing(true);
+    try {
+      await onStatusChange(order.id, newStatus);
+    } catch (error) {
+      console.error('[OrderCard] Status change failed:', error);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   // Status colors
   const statusColors = {
@@ -125,12 +142,52 @@ export function OrderCard({ order, isDragging = false }: OrderCardProps) {
         </div>
       )}
 
-      {/* Footer: Total */}
-      <div className="mt-3 pt-3 border-t border-gray-700 flex items-center justify-between">
-        <span className="text-gray-400 text-sm">Total</span>
-        <span className="text-lg font-bold text-white">
-          {formatCurrency(order.totalAmount)}
-        </span>
+      {/* Footer: Total + Action Buttons */}
+      <div className="mt-3 pt-3 border-t border-gray-700">
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-gray-400 text-sm">Total</span>
+          <span className="text-lg font-bold text-white">
+            {formatCurrency(order.totalAmount)}
+          </span>
+        </div>
+
+        {/* Action Buttons */}
+        {onStatusChange && (
+          <>
+            {order.status === 'pending_validation' && (
+              <button
+                onClick={() => handleStatusChange('preparing')}
+                disabled={isProcessing}
+                className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                <Check className="w-5 h-5" />
+                {isProcessing ? 'Acceptation...' : 'Accepter la commande'}
+              </button>
+            )}
+
+            {order.status === 'preparing' && (
+              <button
+                onClick={() => handleStatusChange('ready')}
+                disabled={isProcessing}
+                className="w-full bg-orange-600 hover:bg-orange-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                <ArrowRight className="w-5 h-5" />
+                {isProcessing ? 'Traitement...' : 'Marquer Prêt'}
+              </button>
+            )}
+
+            {order.status === 'ready' && (
+              <button
+                onClick={() => handleStatusChange('served')}
+                disabled={isProcessing}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                <Check className="w-5 h-5" />
+                {isProcessing ? 'Traitement...' : 'Marquer Servi'}
+              </button>
+            )}
+          </>
+        )}
       </div>
     </div>
   );

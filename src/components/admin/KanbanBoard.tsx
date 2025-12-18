@@ -128,6 +128,18 @@ function KanbanBoardComponent({ restaurantId }: KanbanBoardProps) {
     }
   };
 
+  // Handle status change via buttons
+  const handleStatusChange = async (orderId: string, newStatus: string) => {
+    try {
+      await OrderService.updateOrderStatus(orderId, newStatus);
+      toast.success('Commande mise à jour');
+    } catch (error) {
+      console.error('[KDS] Failed to update order:', error);
+      toast.error('Erreur lors de la mise à jour');
+      throw error;
+    }
+  };
+
   // Memoize handleDragEnd to prevent re-creation on every render
   const handleDragEnd = useMemo(() => async (result: any) => {
     const { source, destination, draggableId } = result;
@@ -232,7 +244,11 @@ function KanbanBoardComponent({ restaurantId }: KanbanBoardProps) {
                             {...provided.draggableProps}
                             {...provided.dragHandleProps}
                           >
-                            <OrderCard order={order} isDragging={snapshot.isDragging} />
+                            <OrderCard
+                              order={order}
+                              isDragging={snapshot.isDragging}
+                              onStatusChange={handleStatusChange}
+                            />
                           </div>
                         )}
                       </Draggable>

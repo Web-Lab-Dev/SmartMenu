@@ -2,12 +2,13 @@
 
 import { useState, useEffect, use, Suspense } from 'react';
 import dynamic from 'next/dynamic';
-import { Search, X } from 'lucide-react';
+import { Search, X, Package } from 'lucide-react';
 import { MobileShell } from '@/components/layout/MobileShell';
 import { CategoryNav } from '@/components/menu/CategoryNav';
 import { MenuGrid } from '@/components/menu/MenuGrid';
 import { FloatingCartButton } from '@/components/menu/FloatingCartButton';
 import { CartDrawer } from '@/components/client/CartDrawer';
+import { OrderTracker } from '@/components/client/OrderTracker';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { ReviewModal } from '@/components/client/ReviewModal';
@@ -67,6 +68,7 @@ export default function MenuPage({ params: paramsPromise }: PageProps) {
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
   const [socialCameraOpen, setSocialCameraOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [orderTrackerOpen, setOrderTrackerOpen] = useState(false);
 
   const { setContext } = useCartStore();
   const customerSessionId = getOrCreateCustomerSessionId();
@@ -297,6 +299,17 @@ export default function MenuPage({ params: paramsPromise }: PageProps) {
         {/* Floating Cart Button */}
         <FloatingCartButton onClick={handleViewCart} />
 
+        {/* Floating Order Tracker Button */}
+        {actualRestaurantId && (
+          <button
+            onClick={() => setOrderTrackerOpen(!orderTrackerOpen)}
+            className="fixed bottom-24 right-4 z-40 w-14 h-14 bg-gradient-to-br from-blue-500 to-purple-600 text-white rounded-full shadow-lg flex items-center justify-center transition-transform hover:scale-110 active:scale-95"
+            aria-label="Voir mes commandes"
+          >
+            <Package className="w-6 h-6" />
+          </button>
+        )}
+
         {/* AI Chat Bubble - Lazy loaded */}
         <Suspense fallback={null}>
           <AIChatBubble restaurantId={restaurantId} />
@@ -337,6 +350,17 @@ export default function MenuPage({ params: paramsPromise }: PageProps) {
           restaurantLogo={restaurant.branding?.logoUrl}
           menuUrl={`${typeof window !== 'undefined' ? window.location.origin : ''}/menu/${restaurantId}/${tableId}`}
           primaryColor={restaurant.branding?.primaryColor}
+        />
+      )}
+
+      {/* Order Tracker - Real-time Order Status */}
+      {actualRestaurantId && (
+        <OrderTracker
+          restaurantId={actualRestaurantId}
+          tableId={tableId}
+          customerSessionId={customerSessionId}
+          isOpen={orderTrackerOpen}
+          onClose={() => setOrderTrackerOpen(false)}
         />
       )}
     </ThemeProvider>
