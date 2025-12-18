@@ -102,7 +102,7 @@ export function AIChatBubble({ restaurantId: _restaurantId }: AIChatBubbleProps)
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: '100%', opacity: 0 }}
               transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-              className="fixed bottom-0 left-0 right-0 z-50 glass-panel rounded-t-3xl max-h-[80vh] flex flex-col"
+              className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-lg border-t border-gray-200 dark:border-gray-700 rounded-t-3xl max-h-[80vh] flex flex-col shadow-2xl"
             >
               {/* Header */}
               <div className="flex items-center justify-between p-4 border-b border-white/10">
@@ -193,7 +193,7 @@ export function AIChatBubble({ restaurantId: _restaurantId }: AIChatBubbleProps)
                       <button
                         key={index}
                         onClick={() => handleSuggestionClick(suggestion)}
-                        className="text-xs px-3 py-2 glass-panel rounded-full hover:bg-white/20 dark:hover:bg-black/20 transition-colors"
+                        className="text-xs px-3 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors border border-gray-200 dark:border-gray-700"
                         disabled={isLoading}
                       >
                         {suggestion}
@@ -214,7 +214,7 @@ export function AIChatBubble({ restaurantId: _restaurantId }: AIChatBubbleProps)
                   onChange={(e) => setInput(e.target.value)}
                   placeholder="Posez votre question..."
                   disabled={isLoading}
-                  className="flex-1 px-4 py-3 rounded-full glass-panel focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:opacity-50"
+                  className="flex-1 px-4 py-3 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 border border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:opacity-50"
                 />
                 <button
                   type="submit"

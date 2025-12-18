@@ -202,9 +202,9 @@ export function useMenuData(restaurantId: string): MenuData {
         icon: category.icon,
         items,
       };
-    })
-    // Remove empty categories (no active products)
-    .filter((category) => category.items.length > 0);
+    });
+    // Note: We now show ALL categories, even empty ones
+    // This allows newly created categories to appear immediately
 
   return {
     loading,
