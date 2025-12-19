@@ -138,33 +138,49 @@ function customizeSVGTemplate(
   }
 
   // Remplacer le nom du restaurant
+  const restaurantName = options.restaurantName || 'Restaurant';
+
   customized = customized.replace(
     /<text id="restaurant-name"([^>]*)>.*?<\/text>/,
-    `<text id="restaurant-name"$1>${options.restaurantName}</text>`
+    `<text id="restaurant-name"$1>${restaurantName}</text>`
   );
   customized = customized.replace(
     /<text id="receipt-restaurant"([^>]*)>.*?<\/text>/,
-    `<text id="receipt-restaurant"$1>${options.restaurantName.toUpperCase()}</text>`
+    `<text id="receipt-restaurant"$1>${restaurantName.toUpperCase()}</text>`
   );
 
-  // Ajouter la date
-  const date = options.date || new Date().toLocaleDateString('fr-FR');
+  // Formatter la date et l'heure ACTUELLES
+  const now = new Date();
+
+  // Format court pour Passport: "19 déc. 2024"
+  const shortDate = now.toLocaleDateString('fr-FR', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
   customized = customized.replace(
     /<text id="date-stamp"([^>]*)>.*?<\/text>/,
-    `<text id="date-stamp"$1>${date}</text>`
+    `<text id="date-stamp"$1>${shortDate}</text>`
   );
 
-  const datetime = new Date().toLocaleString('fr-FR', {
+  // Format complet pour Receipt: "19/12/2024 - 10:45"
+  const fullDate = now.toLocaleDateString('fr-FR', {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
+  });
+  const time = now.toLocaleTimeString('fr-FR', {
     hour: '2-digit',
     minute: '2-digit',
   });
+  const datetime = `${fullDate} - ${time}`;
+
   customized = customized.replace(
     /<text id="receipt-datetime"([^>]*)>.*?<\/text>/,
     `<text id="receipt-datetime"$1>${datetime}</text>`
   );
+
+  console.log('[SVG] Customized with:', { restaurantName, shortDate, datetime });
 
   return customized;
 }
