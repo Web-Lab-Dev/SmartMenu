@@ -140,12 +140,25 @@ function customizeSVGTemplate(
   // Remplacer le nom du restaurant
   const restaurantName = options.restaurantName || 'Restaurant';
 
+  console.log('[SVG] Replacing restaurant name with:', restaurantName);
+
+  // Passport template
+  const restaurantNameRegex = /<text id="restaurant-name"([^>]*)>.*?<\/text>/g;
+  if (restaurantNameRegex.test(customized)) {
+    console.log('[SVG] Found restaurant-name tag in Passport template');
+  }
   customized = customized.replace(
-    /<text id="restaurant-name"([^>]*)>.*?<\/text>/,
+    /<text id="restaurant-name"([^>]*)>.*?<\/text>/g,
     `<text id="restaurant-name"$1>${restaurantName}</text>`
   );
+
+  // Receipt template
+  const receiptRestaurantRegex = /<text id="receipt-restaurant"([^>]*)>.*?<\/text>/g;
+  if (receiptRestaurantRegex.test(customized)) {
+    console.log('[SVG] Found receipt-restaurant tag in Receipt template');
+  }
   customized = customized.replace(
-    /<text id="receipt-restaurant"([^>]*)>.*?<\/text>/,
+    /<text id="receipt-restaurant"([^>]*)>.*?<\/text>/g,
     `<text id="receipt-restaurant"$1>${restaurantName.toUpperCase()}</text>`
   );
 
@@ -158,8 +171,9 @@ function customizeSVGTemplate(
     month: 'short',
     year: 'numeric',
   });
+  console.log('[SVG] Replacing date-stamp with:', shortDate);
   customized = customized.replace(
-    /<text id="date-stamp"([^>]*)>.*?<\/text>/,
+    /<text id="date-stamp"([^>]*)>.*?<\/text>/g,
     `<text id="date-stamp"$1>${shortDate}</text>`
   );
 
@@ -175,12 +189,13 @@ function customizeSVGTemplate(
   });
   const datetime = `${fullDate} - ${time}`;
 
+  console.log('[SVG] Replacing receipt-datetime with:', datetime);
   customized = customized.replace(
-    /<text id="receipt-datetime"([^>]*)>.*?<\/text>/,
+    /<text id="receipt-datetime"([^>]*)>.*?<\/text>/g,
     `<text id="receipt-datetime"$1>${datetime}</text>`
   );
 
-  console.log('[SVG] Customized with:', { restaurantName, shortDate, datetime });
+  console.log('[SVG] Customization complete with:', { restaurantName, shortDate, datetime });
 
   return customized;
 }
