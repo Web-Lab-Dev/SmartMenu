@@ -41,7 +41,7 @@ const cardTransition = { duration: 0.2 };
 function CompactCardComponent({ product, onClick, onAddToCart }: CompactCardProps) {
   return (
     <motion.div
-      className="relative bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-sm border border-gray-200/50 dark:border-gray-700/50 cursor-pointer group"
+      className="relative bg-background-surface rounded-xl overflow-hidden shadow-sm border border-white/5 hover:border-primary/30 cursor-pointer group transition-all duration-300"
       onClick={onClick}
       whileTap={cardVariants.tap}
       initial={cardVariants.initial}
@@ -50,7 +50,7 @@ function CompactCardComponent({ product, onClick, onAddToCart }: CompactCardProp
     >
       <div className="flex items-center gap-3 p-3">
         {/* Square Image */}
-        <div className="relative w-20 h-20 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-900 shrink-0">
+        <div className="relative w-20 h-20 rounded-lg overflow-hidden bg-background shrink-0">
           {(product.images?.[0] || product.image) ? (
             <Image
               src={product.images?.[0] || product.image || ''}
@@ -68,12 +68,12 @@ function CompactCardComponent({ product, onClick, onAddToCart }: CompactCardProp
 
         {/* Content */}
         <div className="flex-1 min-w-0">
-          <h4 className="font-semibold text-base text-gray-900 dark:text-white mb-1 line-clamp-1">
+          <h4 className="font-display font-semibold text-base text-text-primary uppercase tracking-wide mb-1 line-clamp-1">
             {product.name}
           </h4>
 
           {product.description && (
-            <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1 mb-2">
+            <p className="text-xs text-text-secondary line-clamp-1 mb-2">
               {product.description}
             </p>
           )}
@@ -113,20 +113,20 @@ export const CompactCard = memo(CompactCardComponent);
  */
 export function CompactCardSkeleton() {
   return (
-    <div className="relative bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-sm border border-gray-200/50 dark:border-gray-700/50 animate-pulse">
+    <div className="relative bg-background-surface rounded-xl overflow-hidden shadow-sm border border-white/5 animate-pulse">
       <div className="flex items-center gap-3 p-3">
         {/* Image Skeleton */}
-        <div className="w-20 h-20 rounded-lg bg-gray-200 dark:bg-gray-700 shrink-0" />
+        <div className="w-20 h-20 rounded-lg bg-background shrink-0" />
 
         {/* Content Skeleton */}
         <div className="flex-1 space-y-2">
-          <div className="h-5 bg-gray-200 dark:bg-gray-700 rounded w-2/3" />
-          <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-full" />
-          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3" />
+          <div className="h-5 bg-background rounded w-2/3" />
+          <div className="h-3 bg-background rounded w-full" />
+          <div className="h-4 bg-background rounded w-1/3" />
         </div>
 
         {/* Button Skeleton */}
-        <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 shrink-0" />
+        <div className="w-10 h-10 rounded-full bg-background shrink-0" />
       </div>
     </div>
   );

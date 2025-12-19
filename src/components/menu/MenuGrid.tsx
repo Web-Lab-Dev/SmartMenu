@@ -168,9 +168,14 @@ export function MenuGrid({ products, activeCategory, searchQuery = '', loading }
             {heroProducts.map((product, idx) => (
               <motion.div
                 key={product.id}
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: idx * 0.1 }}
+                transition={{
+                  delay: idx * 0.15,
+                  type: 'spring',
+                  stiffness: 300,
+                  damping: 24
+                }}
               >
                 <HeroCard
                   product={product}
@@ -194,9 +199,14 @@ export function MenuGrid({ products, activeCategory, searchQuery = '', loading }
             {compactProducts.map((product, idx) => (
               <motion.div
                 key={product.id}
-                initial={{ opacity: 0, x: -20 }}
+                initial={{ opacity: 0, x: -30 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.2 + idx * 0.05 }}
+                transition={{
+                  delay: 0.3 + idx * 0.06,
+                  type: 'spring',
+                  stiffness: 260,
+                  damping: 20
+                }}
               >
                 <CompactCard
                   product={product}
@@ -210,7 +220,7 @@ export function MenuGrid({ products, activeCategory, searchQuery = '', loading }
 
         {/* Category Count Badge */}
         <div className="flex justify-center pt-4">
-          <div className="px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-full text-sm text-gray-600 dark:text-gray-400">
+          <div className="px-4 py-2 bg-background-surface border border-white/10 rounded-full text-sm text-text-secondary">
             {filteredProducts.length} produit{filteredProducts.length > 1 ? 's' : ''}
           </div>
         </div>

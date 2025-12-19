@@ -45,7 +45,7 @@ export function CategoryNav({
   ], [categories]);
 
   return (
-    <div className="sticky top-16 z-40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-200/30 dark:border-gray-700/30">
+    <div className="sticky top-16 z-40 bg-background/90 backdrop-blur-xl border-b border-white/10">
       <div
         ref={navRef}
         className="flex gap-6 overflow-x-auto px-4 py-3 scrollbar-hide"
@@ -64,11 +64,11 @@ export function CategoryNav({
               {/* Category Text */}
               <span
                 className={`
-                  text-base font-semibold transition-colors duration-200
+                  font-display text-base font-semibold uppercase tracking-wide transition-colors duration-200
                   ${
                     isActive
-                      ? 'text-gray-900 dark:text-white'
-                      : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                      ? 'text-text-primary'
+                      : 'text-text-secondary hover:text-primary/80'
                   }
                 `}
               >

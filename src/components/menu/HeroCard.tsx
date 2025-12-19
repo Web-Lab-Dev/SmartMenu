@@ -42,7 +42,7 @@ const cardTransition = { duration: 0.3 };
 function HeroCardComponent({ product, onClick, onAddToCart, priority = false }: HeroCardProps) {
   return (
     <motion.div
-      className="relative bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm border border-gray-200/50 dark:border-gray-700/50 cursor-pointer group"
+      className="relative bg-background-surface rounded-2xl overflow-hidden shadow-sm border border-white/5 hover:border-primary/30 cursor-pointer group transition-all duration-300"
       onClick={onClick}
       whileTap={cardVariants.tap}
       initial={cardVariants.initial}
@@ -50,7 +50,7 @@ function HeroCardComponent({ product, onClick, onAddToCart, priority = false }: 
       transition={cardTransition}
     >
       {/* Image Container */}
-      <div className="relative aspect-[16/9] bg-gray-100 dark:bg-gray-900 overflow-hidden">
+      <div className="relative aspect-[16/9] bg-background overflow-hidden">
         {(product.images?.[0] || product.image) ? (
           <Image
             src={product.images?.[0] || product.image || ''}
@@ -88,7 +88,7 @@ function HeroCardComponent({ product, onClick, onAddToCart, priority = false }: 
       {/* Content */}
       <div className="p-4 space-y-2">
         <div className="flex items-start justify-between gap-2">
-          <h3 className="font-bold text-lg text-gray-900 dark:text-white line-clamp-1 flex-1">
+          <h3 className="font-display font-bold text-lg text-text-primary uppercase tracking-wide line-clamp-1 flex-1">
             {product.name}
           </h3>
           <div
@@ -100,7 +100,7 @@ function HeroCardComponent({ product, onClick, onAddToCart, priority = false }: 
         </div>
 
         {product.description && (
-          <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
+          <p className="text-sm text-text-secondary line-clamp-2">
             {product.description}
           </p>
         )}
@@ -117,15 +117,15 @@ export const HeroCard = memo(HeroCardComponent);
  */
 export function HeroCardSkeleton() {
   return (
-    <div className="relative bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm border border-gray-200/50 dark:border-gray-700/50 animate-pulse">
+    <div className="relative bg-background-surface rounded-2xl overflow-hidden shadow-sm border border-white/5 animate-pulse">
       {/* Image Skeleton */}
-      <div className="aspect-[16/9] bg-gray-200 dark:bg-gray-700" />
+      <div className="aspect-[16/9] bg-background" />
 
       {/* Content Skeleton */}
       <div className="p-4 space-y-3">
-        <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-3/4" />
-        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full" />
-        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-5/6" />
+        <div className="h-6 bg-background rounded w-3/4" />
+        <div className="h-4 bg-background rounded w-full" />
+        <div className="h-4 bg-background rounded w-5/6" />
       </div>
     </div>
   );
