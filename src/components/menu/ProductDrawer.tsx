@@ -33,7 +33,8 @@ export function ProductDrawer({ product, isOpen, onClose }: ProductDrawerProps) 
   const [quantity, setQuantity] = useState(1);
   const { addItem } = useCartStore();
 
-  if (!product) return null;
+  // Don't render anything if no product or not open
+  if (!product || !isOpen) return null;
 
   // Handle multiple images - use images array or fallback to legacy image field
   const images = Array.isArray(product.images) && product.images.length > 0
