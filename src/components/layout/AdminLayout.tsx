@@ -128,18 +128,19 @@ export function AdminLayout({ children, onAIAssistantToggle, isAIAssistantOpen =
   // Redirect happens in useAdminAuth hook if unauthorized
 
   return (
-    <div className="dark min-h-screen bg-gray-950 text-white print:bg-white">
+    <div className="dark min-h-screen text-white print:bg-white" style={{ backgroundColor: '#121212' }}>
       {/* Sidebar */}
       <motion.aside
         initial={false}
         animate={{ width: isSidebarCollapsed ? '80px' : '256px' }}
         transition={{ duration: 0.3, ease: 'easeInOut' }}
-        className="fixed left-0 top-0 h-full bg-gray-900 border-r border-gray-800 z-40"
+        className="fixed left-0 top-0 h-full border-r border-gray-800 z-40"
+        style={{ backgroundColor: '#0F0F0F' }}
       >
         {/* Logo / Restaurant Name */}
         <div className="p-6 border-b border-gray-800">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center shrink-0">
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'linear-gradient(to bottom right, #FF7D29, #FF5722)' }}>
               <Store className="w-6 h-6 text-white" />
             </div>
             {!isSidebarCollapsed && (
@@ -173,11 +174,14 @@ export function AdminLayout({ children, onAIAssistantToggle, isAIAssistantOpen =
                   flex items-center gap-3 px-4 py-3 rounded-lg transition-colors relative
                   ${
                     isActive
-                      ? 'bg-orange-500/10 text-orange-500 font-medium'
-                      : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                      ? 'font-medium'
+                      : 'text-gray-400 hover:text-white'
                   }
                   ${isSidebarCollapsed ? 'justify-center' : ''}
                 `}
+                style={isActive ? { backgroundColor: 'rgba(255, 125, 41, 0.1)', color: '#FF7D29' } : { }}
+                onMouseEnter={(e) => !isActive && (e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)')}
+                onMouseLeave={(e) => !isActive && (e.currentTarget.style.backgroundColor = 'transparent')}
                 title={isSidebarCollapsed ? item.label : undefined}
               >
                 <Icon className="w-5 h-5 shrink-0" />
@@ -185,14 +189,14 @@ export function AdminLayout({ children, onAIAssistantToggle, isAIAssistantOpen =
                   <>
                     <span className="flex-1">{item.label}</span>
                     {showBadge && (
-                      <span className="px-2 py-0.5 bg-orange-500 text-white text-xs font-bold rounded-full">
+                      <span className="px-2 py-0.5 text-xs font-bold rounded-full" style={{ backgroundColor: '#FF7D29', color: '#000000' }}>
                         {badgeCount}
                       </span>
                     )}
                   </>
                 )}
                 {isSidebarCollapsed && showBadge && (
-                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-orange-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
+                  <span className="absolute -top-1 -right-1 w-5 h-5 text-xs font-bold rounded-full flex items-center justify-center" style={{ backgroundColor: '#FF7D29', color: '#000000' }}>
                     {badgeCount > 9 ? '9+' : badgeCount}
                   </span>
                 )}
@@ -208,11 +212,14 @@ export function AdminLayout({ children, onAIAssistantToggle, isAIAssistantOpen =
                 w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors
                 ${
                   isAIAssistantOpen
-                    ? 'bg-purple-500/10 text-purple-500 font-medium'
-                    : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                    ? 'font-medium'
+                    : 'text-gray-400 hover:text-white'
                 }
                 ${isSidebarCollapsed ? 'justify-center' : ''}
               `}
+              style={isAIAssistantOpen ? { backgroundColor: 'rgba(168, 85, 247, 0.1)', color: '#A855F7' } : {}}
+              onMouseEnter={(e) => !isAIAssistantOpen && (e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)')}
+              onMouseLeave={(e) => !isAIAssistantOpen && (e.currentTarget.style.backgroundColor = 'transparent')}
               title={isSidebarCollapsed ? 'Assistant IA' : undefined}
             >
               <Sparkles className="w-5 h-5 shrink-0" />
@@ -235,7 +242,7 @@ export function AdminLayout({ children, onAIAssistantToggle, isAIAssistantOpen =
         </button>
 
         {/* Footer: User Info + Logout */}
-        <div className="absolute bottom-0 left-0 right-0 border-t border-gray-800 bg-gray-900">
+        <div className="absolute bottom-0 left-0 right-0 border-t border-gray-800" style={{ backgroundColor: '#0F0F0F' }}>
           {/* User Profile & Logout */}
           <div className={`p-4 flex items-center ${isSidebarCollapsed ? 'justify-center' : 'justify-between'}`}>
             {!isSidebarCollapsed ? (
@@ -256,7 +263,10 @@ export function AdminLayout({ children, onAIAssistantToggle, isAIAssistantOpen =
                 <button
                   onClick={handleLogout}
                   disabled={isLoggingOut}
-                  className="p-2 hover:bg-gray-800 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+                  className="p-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+                  style={{ backgroundColor: 'transparent' }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                   title="Déconnexion"
                 >
                   <LogOut className={`w-4 h-4 text-gray-400 ${isLoggingOut ? 'animate-spin' : ''}`} />
@@ -282,7 +292,7 @@ export function AdminLayout({ children, onAIAssistantToggle, isAIAssistantOpen =
           {!isSidebarCollapsed && (
             <div className="px-4 pb-4 pt-2">
               <p className="text-xs text-gray-500 text-center font-medium">
-                Powered by <span className="text-orange-500 font-semibold">SmartMenu</span>
+                Powered by <span className="font-semibold" style={{ color: '#FF7D29' }}>SmartMenu</span>
               </p>
             </div>
           )}
@@ -297,10 +307,11 @@ export function AdminLayout({ children, onAIAssistantToggle, isAIAssistantOpen =
           marginRight: isAIAssistantOpen ? '400px' : '0px',
         }}
         transition={{ duration: 0.3, ease: 'easeInOut' }}
-        className="min-h-screen bg-gray-950"
+        className="min-h-screen"
+        style={{ backgroundColor: '#121212' }}
       >
         {/* Top Bar */}
-        <header className="sticky top-0 z-30 bg-gray-900 border-b border-gray-800">
+        <header className="sticky top-0 z-30 border-b border-gray-800" style={{ backgroundColor: '#1E1E1E' }}>
           <div className="px-8 py-4">
             <div className="flex items-center justify-between">
               <div>

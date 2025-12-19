@@ -103,7 +103,13 @@ export default function AdminDashboard() {
           return (
             <div
               key={index}
-              className="bg-gray-800 rounded-lg border border-gray-700 p-6 hover:border-gray-600 transition-colors"
+              className="rounded-lg p-6 transition-colors border"
+              style={{
+                backgroundColor: '#1E1E1E',
+                borderColor: 'rgba(255, 255, 255, 0.05)'
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)')}
+              onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.05)')}
             >
               <div className="flex items-start justify-between">
                 <div>
@@ -121,7 +127,7 @@ export default function AdminDashboard() {
 
       {/* Empty State: Quick Start Guide */}
       {hasNoOrders ? (
-        <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg border border-gray-700 p-8">
+        <div className="rounded-lg border p-8" style={{ backgroundColor: '#1E1E1E', borderColor: 'rgba(255, 255, 255, 0.05)' }}>
           <div className="text-center max-w-2xl mx-auto">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-orange-500/10 mb-4">
               <Sparkles className="w-8 h-8 text-orange-500" />
@@ -134,7 +140,10 @@ export default function AdminDashboard() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Link
                 href="/admin/menu"
-                className="group bg-orange-500 hover:bg-orange-600 text-white font-semibold py-4 px-6 rounded-lg transition-all flex items-center justify-center gap-3 shadow-lg hover:shadow-orange-500/50"
+                className="group font-semibold py-4 px-6 rounded-lg transition-all flex items-center justify-center gap-3 shadow-lg"
+                style={{ backgroundColor: '#FF7D29', color: '#000000' }}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#FF8C3D')}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#FF7D29')}
               >
                 <UtensilsCrossed className="w-5 h-5" />
                 Configurer mon Menu
@@ -142,7 +151,10 @@ export default function AdminDashboard() {
 
               <Link
                 href="/admin/settings"
-                className="group bg-gray-700 hover:bg-gray-600 text-white font-semibold py-4 px-6 rounded-lg transition-all flex items-center justify-center gap-3 border border-gray-600"
+                className="group text-white font-semibold py-4 px-6 rounded-lg transition-all flex items-center justify-center gap-3 border"
+                style={{ backgroundColor: 'rgba(255, 255, 255, 0.05)', borderColor: 'rgba(255, 255, 255, 0.1)' }}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)')}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)')}
               >
                 <QrCode className="w-5 h-5" />
                 Imprimer mes QR Codes
@@ -158,26 +170,26 @@ export default function AdminDashboard() {
         </div>
       ) : (
         /* Activity Summary when there are orders */
-        <div className="bg-gray-800 rounded-lg border border-gray-700 p-6">
+        <div className="rounded-lg border p-6" style={{ backgroundColor: '#1E1E1E', borderColor: 'rgba(255, 255, 255, 0.05)' }}>
           <h3 className="text-xl font-semibold text-white mb-4">Activité du jour</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="text-center p-4 bg-gray-900 rounded-lg">
+            <div className="text-center p-4 rounded-lg" style={{ backgroundColor: '#121212' }}>
               <p className="text-2xl font-bold text-white">{todayOrders.length}</p>
               <p className="text-sm text-gray-400">Commandes</p>
             </div>
-            <div className="text-center p-4 bg-gray-900 rounded-lg">
+            <div className="text-center p-4 rounded-lg" style={{ backgroundColor: '#121212' }}>
               <p className="text-2xl font-bold text-red-400">
                 {todayOrders.filter((o) => o.status === 'pending_validation').length}
               </p>
               <p className="text-sm text-gray-400">En attente</p>
             </div>
-            <div className="text-center p-4 bg-gray-900 rounded-lg">
+            <div className="text-center p-4 rounded-lg" style={{ backgroundColor: '#121212' }}>
               <p className="text-2xl font-bold text-yellow-400">
                 {todayOrders.filter((o) => o.status === 'preparing').length}
               </p>
               <p className="text-sm text-gray-400">En préparation</p>
             </div>
-            <div className="text-center p-4 bg-gray-900 rounded-lg">
+            <div className="text-center p-4 rounded-lg" style={{ backgroundColor: '#121212' }}>
               <p className="text-2xl font-bold text-green-400">
                 {todayOrders.filter((o) => o.status === 'ready' || o.status === 'served').length}
               </p>
