@@ -55,9 +55,16 @@ function loadImage(src: string): Promise<HTMLImageElement> {
  */
 async function loadSVGTemplate(templatePath: string): Promise<string> {
   try {
+    console.log('[SVG] Loading template from:', templatePath);
     const response = await fetch(templatePath);
-    if (!response.ok) throw new Error(`Failed to load template: ${templatePath}`);
-    return await response.text();
+    if (!response.ok) {
+      console.error('[SVG] Failed to load template, status:', response.status);
+      throw new Error(`Failed to load template: ${templatePath}`);
+    }
+    const svgText = await response.text();
+    console.log('[SVG] Template loaded successfully, length:', svgText.length);
+    console.log('[SVG] First 200 chars:', svgText.substring(0, 200));
+    return svgText;
   } catch (error) {
     console.error('[SVG] Template load error:', error);
     throw error;
@@ -324,6 +331,11 @@ async function generateFoodiePassport(options: SocialImageOptions): Promise<stri
  * Style ticket de caisse rétro
  */
 async function generateReceiptAesthetic(options: SocialImageOptions): Promise<string> {
+  console.log('[ReceiptAesthetic] Starting generation with options:', {
+    restaurantName: options.restaurantName,
+    menuUrl: options.menuUrl,
+  });
+
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d')!;
 
@@ -332,28 +344,39 @@ async function generateReceiptAesthetic(options: SocialImageOptions): Promise<st
 
   try {
     // 1. Générer le QR code
+    console.log('[ReceiptAesthetic] Generating QR code...');
     const qrCode = await generateQRCode(options.menuUrl, 200);
+    console.log('[ReceiptAesthetic] QR code generated:', qrCode ? 'SUCCESS' : 'FAILED');
 
     // 2. Charger le template SVG
+    console.log('[ReceiptAesthetic] Loading SVG template...');
     const svgTemplate = await loadSVGTemplate('/templates/receipt-texture.svg');
 
     // 3. Personnaliser le SVG
+    console.log('[ReceiptAesthetic] Customizing SVG...');
     const customizedSVG = customizeSVGTemplate(svgTemplate, {
       restaurantName: options.restaurantName,
       photoDataUrl: options.webcamImageSrc,
       qrDataUrl: qrCode,
     });
+    console.log('[ReceiptAesthetic] SVG customized, length:', customizedSVG.length);
 
     // 4. Convertir SVG en Image
+    console.log('[ReceiptAesthetic] Converting SVG to image...');
     const svgImage = await svgStringToImage(customizedSVG);
+    console.log('[ReceiptAesthetic] SVG converted to image');
 
     // 5. Dessiner sur canvas
     ctx.drawImage(svgImage, 0, 0, canvas.width, canvas.height);
+    console.log('[ReceiptAesthetic] Image drawn to canvas');
 
     // 6. Export haute qualité
-    return canvas.toDataURL('image/jpeg', 0.95);
+    const result = canvas.toDataURL('image/jpeg', 0.95);
+    console.log('[ReceiptAesthetic] Export complete');
+    return result;
   } catch (error) {
     console.error('[ReceiptAesthetic] Error:', error);
+    console.error('[ReceiptAesthetic] Falling back to standard frame');
     // Fallback to standard frame
     return generateStandardFrame(options);
   }
