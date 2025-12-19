@@ -8,7 +8,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Camera, Download, Share2, RotateCw, Sparkles } from 'lucide-react';
+import { X, Camera, Download, Share2, RotateCw } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   generateSocialImage,
@@ -26,7 +26,7 @@ interface SocialCameraProps {
   primaryColor?: string;
 }
 
-type CSSFilter = 'none' | 'sepia' | 'grayscale' | 'contrast' | 'vintage';
+type CSSFilter = 'natural' | 'vintage-warm' | 'neon-cool' | 'bw-chic';
 
 const TEMPLATES: { id: TemplateType; label: string; emoji: string }[] = [
   { id: 'standard', label: 'Classic', emoji: '🖼️' },
@@ -34,12 +34,36 @@ const TEMPLATES: { id: TemplateType; label: string; emoji: string }[] = [
   { id: 'receipt', label: 'Receipt', emoji: '🧾' },
 ];
 
-const CSS_FILTERS: { id: CSSFilter; label: string; css: string }[] = [
-  { id: 'none', label: 'Aucun', css: 'none' },
-  { id: 'sepia', label: 'Sépia', css: 'sepia(0.8)' },
-  { id: 'grayscale', label: 'N&B', css: 'grayscale(1)' },
-  { id: 'contrast', label: 'Contraste', css: 'contrast(1.3) brightness(1.1)' },
-  { id: 'vintage', label: 'Vintage', css: 'sepia(0.5) contrast(1.2)' },
+/**
+ * FILTRES COLORIMÉTRIQUES
+ * Chaque filtre combine correction de luminosité + style artistique
+ * IMPORTANT: Ces mêmes valeurs CSS doivent être appliquées sur <video> (preview) et Canvas (capture)
+ */
+const CSS_FILTERS: { id: CSSFilter; label: string; css: string; icon: string }[] = [
+  {
+    id: 'natural',
+    label: 'Naturel',
+    css: 'brightness(120%) contrast(110%)',
+    icon: '☀️',
+  },
+  {
+    id: 'vintage-warm',
+    label: 'Vintage',
+    css: 'sepia(30%) brightness(115%) contrast(120%) saturate(110%) hue-rotate(-10deg)',
+    icon: '🎞️',
+  },
+  {
+    id: 'neon-cool',
+    label: 'Néon',
+    css: 'brightness(110%) contrast(125%) saturate(130%) hue-rotate(15deg)',
+    icon: '🌃',
+  },
+  {
+    id: 'bw-chic',
+    label: 'N&B Chic',
+    css: 'grayscale(100%) brightness(115%) contrast(130%)',
+    icon: '🎬',
+  },
 ];
 
 export function SocialCamera({
@@ -55,7 +79,7 @@ export function SocialCamera({
 
   const [facingMode, setFacingMode] = useState<'user' | 'environment'>('user');
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateType>('passport');
-  const [selectedFilter, setSelectedFilter] = useState<CSSFilter>('none');
+  const [selectedFilter, setSelectedFilter] = useState<CSSFilter>('natural');
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -177,7 +201,11 @@ export function SocialCamera({
     }
 
     try {
-      // 1. Capturer la frame vidéo avec effet miroir pour selfie
+      // 1. Récupérer le filtre CSS sélectionné
+      const filter = CSS_FILTERS.find((f) => f.id === selectedFilter);
+      addDebugLog(`Filtre sélectionné: ${filter?.label} (${filter?.css})`);
+
+      // 2. Capturer la frame vidéo avec effet miroir pour selfie
       if (facingMode === 'user') {
         // Mode miroir pour selfie (correspond à la preview)
         ctx.save();
@@ -189,21 +217,9 @@ export function SocialCamera({
         ctx.drawImage(video, 0, 0, width, height);
       }
 
-      // 2. Appliquer "Night Mode" (amélioration automatique)
-      const tempCanvas = document.createElement('canvas');
-      tempCanvas.width = width;
-      tempCanvas.height = height;
-      const tempCtx = tempCanvas.getContext('2d')!;
-
-      tempCtx.filter = 'brightness(135%) contrast(115%) saturate(120%)';
-      tempCtx.drawImage(canvas, 0, 0);
-
-      ctx.clearRect(0, 0, width, height);
-      ctx.drawImage(tempCanvas, 0, 0);
-
-      // 3. Appliquer filtre CSS si sélectionné
-      const filter = CSS_FILTERS.find((f) => f.id === selectedFilter);
-      if (filter && filter.css !== 'none') {
+      // 3. Appliquer le filtre CSS (qui intègre déjà la correction de luminosité)
+      // IMPORTANT: Même filtre que la preview vidéo pour cohérence visuelle
+      if (filter) {
         const filterCanvas = document.createElement('canvas');
         filterCanvas.width = width;
         filterCanvas.height = height;
@@ -439,7 +455,7 @@ export function SocialCamera({
                         ))}
 
                         {/* Filtres CSS */}
-                        {CSS_FILTERS.filter((f) => f.id !== 'none').map((filter) => (
+                        {CSS_FILTERS.map((filter) => (
                           <button
                             key={`filter-${filter.id}`}
                             onClick={() => setSelectedFilter(filter.id)}
@@ -455,7 +471,7 @@ export function SocialCamera({
                               }
                             `}
                           >
-                            <Sparkles className={`w-6 h-6 ${selectedFilter === filter.id ? 'text-black' : 'text-white'}`} />
+                            <span className="text-3xl">{filter.icon}</span>
                             {selectedFilter === filter.id && (
                               <span className="text-[10px] font-bold text-black -mt-1">
                                 {filter.label}
