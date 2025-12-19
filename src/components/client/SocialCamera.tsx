@@ -413,54 +413,39 @@ export function SocialCamera({
 
                   {/* Content */}
                   <div className="relative px-4 pb-8">
-                    {/* Templates Carousel (Top) */}
-                    <div className="mb-12">
-                      <div
-                        className="flex gap-4 overflow-x-auto pb-4 px-4 -mx-4 snap-x snap-mandatory scrollbar-hide"
-                        style={{
-                          scrollbarWidth: 'none',
-                          msOverflowStyle: 'none',
-                          WebkitOverflowScrolling: 'touch',
-                        }}
-                      >
-                        {/* Padding spacer gauche */}
-                        <div className="shrink-0 w-[calc(50vw-4rem)]" />
-
+                    {/* All Controls in Horizontal Row */}
+                    <div className="flex flex-col items-center gap-8">
+                      {/* Templates + Filters in Single Row */}
+                      <div className="flex items-center gap-3 justify-center flex-wrap">
                         {/* Templates */}
-                        {TEMPLATES.map((template) => (
-                          <button
+                        {TEMPLATES.map((template, index) => (
+                          <motion.button
                             key={template.id}
                             onClick={() => setSelectedTemplate(template.id)}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: index * 0.1 }}
                             className={`
-                              shrink-0 snap-center
-                              flex flex-col items-center justify-center gap-2
-                              w-20 h-20 rounded-full
+                              flex flex-col items-center justify-center gap-1
+                              w-16 h-16 rounded-full
                               transition-all duration-300 ease-out
                               ${
                                 selectedTemplate === template.id
-                                  ? 'bg-white scale-125 ring-4 ring-primary/50 shadow-2xl'
-                                  : 'bg-white/20 backdrop-blur-md scale-100 hover:scale-110'
+                                  ? 'bg-white scale-110 ring-4 ring-primary/50 shadow-xl'
+                                  : 'bg-white/20 backdrop-blur-md scale-100 hover:scale-105'
                               }
                             `}
                           >
-                            <span className="text-3xl">{template.emoji}</span>
+                            <span className="text-2xl">{template.emoji}</span>
                             {selectedTemplate === template.id && (
-                              <span className="text-[10px] font-bold text-black -mt-1">
+                              <span className="text-[8px] font-bold text-black -mt-0.5">
                                 {template.label}
                               </span>
                             )}
-                          </button>
+                          </motion.button>
                         ))}
 
-                        {/* Padding spacer droit */}
-                        <div className="shrink-0 w-[calc(50vw-4rem)]" />
-                      </div>
-                    </div>
-
-                    {/* Shutter Button + Horizontal Filters */}
-                    <div className="flex flex-col items-center gap-6">
-                      {/* Horizontal Filter Row */}
-                      <div className="flex items-center gap-4 justify-center">
+                        {/* Filters */}
                         {CSS_FILTERS.map((filter, index) => (
                           <motion.button
                             key={`filter-${filter.id}`}
@@ -468,7 +453,7 @@ export function SocialCamera({
                             whileTap={{ scale: 0.9 }}
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: index * 0.1 }}
+                            transition={{ delay: (TEMPLATES.length + index) * 0.1 }}
                             className={`
                               flex flex-col items-center justify-center gap-1
                               w-16 h-16 rounded-full
@@ -482,7 +467,7 @@ export function SocialCamera({
                           >
                             <span className="text-2xl">{filter.icon}</span>
                             {selectedFilter === filter.id && (
-                              <span className="text-[9px] font-bold text-black -mt-0.5">
+                              <span className="text-[8px] font-bold text-black -mt-0.5">
                                 {filter.label}
                               </span>
                             )}
