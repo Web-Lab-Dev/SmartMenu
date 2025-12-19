@@ -1,64 +1,75 @@
 @import "tailwindcss";
 
 /* ========================================
-   Design System - Premium V2 avec Glassmorphism
+   🔥 SPICY DARK THEME - "Orange Bistro"
    ======================================== */
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Palette Principale */
+  --background: #121212; /* Noir charbon */
+  --foreground: #FFFFFF; /* Blanc pur */
+  --surface: #1E1E1E;    /* Gris foncé (cartes) */
 
-  /* Brand Colors - Dynamiques par restaurant */
-  --brand-color: #FF4500; /* Couleur principale restaurant */
-  --brand-rgb: 255, 69, 0; /* Version RGB pour opacité */
+  /* Brand Colors - Orange Bistro */
+  --brand-color: #FF7D29; /* Orange vibrant */
+  --brand-rgb: 255, 125, 41; /* Version RGB pour opacité */
 
-  /* Glassmorphism */
-  --glass-bg: rgba(255, 255, 255, 0.7);
-  --glass-border: rgba(255, 255, 255, 0.3);
-  --glass-shadow: rgba(0, 0, 0, 0.1);
+  /* Text Hierarchy */
+  --text-primary: #FFFFFF;
+  --text-secondary: #A0A0A0;
+  --text-muted: #6B6B6B;
+
+  /* Glassmorphism Dark */
+  --glass-bg: rgba(30, 30, 30, 0.8);
+  --glass-border: rgba(255, 125, 41, 0.2);
+  --glass-shadow: rgba(0, 0, 0, 0.6);
 
   /* Glassmorphism - Header/Nav */
-  --glass-header-bg: rgba(255, 255, 255, 0.8);
-  --glass-header-border: rgba(255, 255, 255, 0.4);
+  --glass-header-bg: rgba(18, 18, 18, 0.9);
+  --glass-header-border: rgba(255, 125, 41, 0.15);
 
   /* Glassmorphism - FAB/Bottom Bar */
-  --glass-fab-bg: rgba(255, 255, 255, 0.9);
-  --glass-fab-border: rgba(255, 255, 255, 0.5);
+  --glass-fab-bg: rgba(30, 30, 30, 0.95);
+  --glass-fab-border: rgba(255, 125, 41, 0.3);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-
-    /* Glassmorphism Dark Mode */
-    --glass-bg: rgba(0, 0, 0, 0.6);
-    --glass-border: rgba(255, 255, 255, 0.1);
-    --glass-shadow: rgba(0, 0, 0, 0.3);
-
-    --glass-header-bg: rgba(0, 0, 0, 0.7);
-    --glass-header-border: rgba(255, 255, 255, 0.15);
-
-    --glass-fab-bg: rgba(0, 0, 0, 0.8);
-    --glass-fab-border: rgba(255, 255, 255, 0.2);
-  }
+  --font-display: var(--font-display);
+  --font-sans: var(--font-sans);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
 
   /* Smooth scroll iOS-style */
   -webkit-overflow-scrolling: touch;
   scroll-behavior: smooth;
+}
+
+/* ========================================
+   🎨 Texture Noise (Effet Papier Ardoise)
+   ======================================== */
+
+.bg-noise {
+  position: relative;
+}
+
+.bg-noise::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.05'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.bg-noise > * {
+  position: relative;
+  z-index: 2;
 }
 
 /* ========================================
