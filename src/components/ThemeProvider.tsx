@@ -69,6 +69,12 @@ export function ThemeProvider({ branding, children }: ThemeProviderProps) {
     root.style.setProperty('--brand-font', fontFamilyMap[fontFamily]);
     root.style.setProperty('--brand-radius', radiusMap[radius]);
 
+    // Dark theme backgrounds
+    root.style.setProperty('--background', '#121212');
+    root.style.setProperty('--background-surface', '#1E1E1E');
+    root.style.setProperty('--text-primary', '#FFFFFF');
+    root.style.setProperty('--text-secondary', '#A0A0A0');
+
     // Cleanup on unmount (reset to defaults)
     return () => {
       root.style.removeProperty('--brand-color');

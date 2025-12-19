@@ -74,7 +74,7 @@ export function FloatingCartButton({ onClick }: FloatingCartButtonProps) {
           className={`
             glass-fab w-full rounded-2xl px-6 py-4 touch-feedback
             flex items-center justify-between
-            shadow-2xl
+            glow-orange
             ${shouldShake ? 'animate-shake' : ''}
           `}
           whileTap={{ scale: 0.98 }}
@@ -100,15 +100,15 @@ export function FloatingCartButton({ onClick }: FloatingCartButtonProps) {
                 animate={{ scale: 1 }}
                 transition={{ type: 'spring', stiffness: 500, damping: 15 }}
               >
-                <span className="text-xs font-bold text-white">{totalItems}</span>
+                <span className="text-xs font-bold" style={{ color: '#000000' }}>{totalItems}</span>
               </motion.div>
             </div>
 
             <div className="text-left">
-              <p className="text-sm font-semibold text-gray-900 dark:text-white">
+              <p className="text-sm font-semibold text-white">
                 Voir mon panier
               </p>
-              <p className="text-xs text-gray-600 dark:text-gray-400">
+              <p className="text-xs text-gray-400">
                 {totalItems} {totalItems === 1 ? 'article' : 'articles'}
               </p>
             </div>

@@ -307,17 +307,18 @@ export default function MenuPage({ params: paramsPromise }: PageProps) {
         </div>
 
         {/* Social Studio CTA - Instagram Story Style */}
-        <div className="mt-12 mb-4 glass-panel rounded-2xl p-6 text-center bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20">
+        <div className="mt-12 mb-4 glass-panel rounded-2xl p-6 text-center" style={{ background: 'linear-gradient(to bottom right, rgba(168, 85, 247, 0.1), rgba(236, 72, 153, 0.1))' }}>
           <div className="text-4xl mb-3">📸</div>
-          <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
+          <h3 className="text-lg font-bold text-white mb-2">
             Immortalisez votre moment !
           </h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+          <p className="text-sm text-gray-400 mb-4">
             Créez une photo stylée avec nos templates viraux
           </p>
           <button
             onClick={() => setSocialCameraOpen(true)}
-            className="px-6 py-3 rounded-xl font-semibold text-white transition-transform hover:scale-105 active:scale-95 shadow-lg bg-gradient-to-r from-purple-500 to-pink-500"
+            className="px-6 py-3 rounded-xl font-semibold text-white transition-transform hover:scale-105 active:scale-95 shadow-lg"
+            style={{ background: 'linear-gradient(to right, #A855F7, #EC4899)' }}
           >
             📷 Ouvrir Social Studio
           </button>
@@ -326,16 +327,16 @@ export default function MenuPage({ params: paramsPromise }: PageProps) {
         {/* Review CTA Section - Encourage feedback */}
         <div className="mt-4 mb-8 glass-panel rounded-2xl p-6 text-center">
           <div className="text-4xl mb-3">⭐</div>
-          <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
+          <h3 className="text-lg font-bold text-white mb-2">
             Votre avis nous intéresse !
           </h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+          <p className="text-sm text-gray-400 mb-4">
             Partagez votre expérience avec nous
           </p>
           <button
             onClick={() => setReviewModalOpen(true)}
-            className="px-6 py-3 rounded-xl font-semibold text-white transition-transform hover:scale-105 active:scale-95 shadow-lg"
-            style={{ backgroundColor: 'var(--brand-color, #FF4500)' }}
+            className="px-6 py-3 rounded-xl font-semibold transition-transform hover:scale-105 active:scale-95 shadow-lg"
+            style={{ backgroundColor: 'var(--brand-color, #FF7D29)', color: '#000000' }}
           >
             Donner mon avis
           </button>

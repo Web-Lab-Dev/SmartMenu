@@ -41,7 +41,7 @@ export function MobileShell({
   // Use logo prop if provided, otherwise fallback to restaurantLogo
   const logoUrl = logo || restaurantLogo;
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
+    <div className="min-h-screen" style={{ background: 'linear-gradient(to bottom, #0A0A0A, #121212)' }}>
       {/* Live Order Feed - Social Proof */}
       {restaurantId && tableId && (
         <LiveOrderFeed
@@ -66,20 +66,20 @@ export function MobileShell({
                   />
                 </div>
               ) : (
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: 'linear-gradient(to bottom right, #FF7D29, #FF5722)' }}>
                   <span className="text-xl">🍽️</span>
                 </div>
               )}
               <div>
-                <h1 className="font-bold text-gray-900 dark:text-white">
+                <h1 className="font-bold text-white">
                   {restaurantName}
                 </h1>
                 {tableId ? (
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                  <p className="text-xs text-gray-400">
                     Table {tableId}
                   </p>
                 ) : (
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                  <p className="text-xs text-gray-400">
                     Menu digital
                   </p>
                 )}

@@ -230,6 +230,27 @@ body {
 }
 
 /* ========================================
+   Creative Glow Effects
+   ======================================== */
+
+@keyframes glow-pulse {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(var(--brand-rgb), 0.3),
+                0 0 40px rgba(var(--brand-rgb), 0.1);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(var(--brand-rgb), 0.4),
+                0 0 60px rgba(var(--brand-rgb), 0.2);
+  }
+}
+
+.glow-orange {
+  box-shadow: 0 0 20px rgba(255, 125, 41, 0.3),
+              0 0 40px rgba(255, 125, 41, 0.1);
+  animation: glow-pulse 3s ease-in-out infinite;
+}
+
+/* ========================================
    Mobile-First Touch Optimizations
    ======================================== */
 
