@@ -75,33 +75,37 @@ export function ProductDrawer({ product, isOpen, onClose }: ProductDrawerProps) 
   return (
     <Drawer.Root open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <Drawer.Portal>
-        <Drawer.Overlay className="fixed inset-0 bg-black/40 z-50" />
+        <Drawer.Overlay className="fixed inset-0 bg-black/60 z-50" />
         <Drawer.Content
-          className="fixed bottom-0 left-0 right-0 z-50 flex flex-col bg-white dark:bg-gray-900 rounded-t-3xl max-h-[95vh]"
+          className="fixed bottom-0 left-0 right-0 z-50 flex flex-col rounded-t-3xl max-h-[95vh]"
+          style={{ backgroundColor: '#1E1E1E' }}
           aria-describedby="product-description"
         >
           {/* Hidden Title for accessibility */}
           <Drawer.Title className="sr-only">{product.name}</Drawer.Title>
 
           {/* Handle Bar */}
-          <div className="flex justify-center py-4 border-b border-gray-200 dark:border-gray-800">
-            <div className="w-12 h-1.5 bg-gray-300 dark:bg-gray-700 rounded-full" />
+          <div className="flex justify-center py-4 border-b" style={{ borderColor: 'rgba(255, 255, 255, 0.05)' }}>
+            <div className="w-12 h-1.5 rounded-full" style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }} />
           </div>
 
           {/* Close Button */}
           <button
             onClick={onClose}
-            className="absolute top-6 right-6 w-10 h-10 rounded-full bg-white dark:bg-gray-800 shadow-lg flex items-center justify-center z-10"
+            className="absolute top-6 right-6 w-10 h-10 rounded-full shadow-lg flex items-center justify-center z-10 transition-colors"
+            style={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.15)')}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)')}
             aria-label="Fermer"
           >
-            <X className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+            <X className="w-5 h-5 text-white" />
           </button>
 
           {/* Scrollable Content */}
           <div className="flex-1 overflow-y-auto">
             {/* Image Carousel */}
             {images.length > 0 && (
-              <div className="relative aspect-[4/3] bg-gray-100 dark:bg-gray-800">
+              <div className="relative aspect-[4/3]" style={{ backgroundColor: '#121212' }}>
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={currentImageIndex}
@@ -127,15 +131,21 @@ export function ProductDrawer({ product, isOpen, onClose }: ProductDrawerProps) 
                   <>
                     <button
                       onClick={prevImage}
-                      className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 dark:bg-gray-800/90 shadow-lg flex items-center justify-center"
+                      className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full shadow-lg flex items-center justify-center transition-colors"
+                      style={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
+                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.15)')}
+                      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)')}
                     >
-                      <ChevronLeft className="w-6 h-6 text-gray-700 dark:text-gray-300" />
+                      <ChevronLeft className="w-6 h-6 text-white" />
                     </button>
                     <button
                       onClick={nextImage}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 dark:bg-gray-800/90 shadow-lg flex items-center justify-center"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full shadow-lg flex items-center justify-center transition-colors"
+                      style={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
+                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.15)')}
+                      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)')}
                     >
-                      <ChevronRight className="w-6 h-6 text-gray-700 dark:text-gray-300" />
+                      <ChevronRight className="w-6 h-6 text-white" />
                     </button>
 
                     {/* Image Indicators */}
@@ -160,7 +170,7 @@ export function ProductDrawer({ product, isOpen, onClose }: ProductDrawerProps) 
             <div className="p-6 space-y-6">
               {/* Header */}
               <div>
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                <h2 className="text-2xl font-bold text-white mb-2">
                   {product.name}
                 </h2>
                 <div
@@ -174,10 +184,10 @@ export function ProductDrawer({ product, isOpen, onClose }: ProductDrawerProps) 
               {/* Description */}
               {product.description && (
                 <div>
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
+                  <h3 className="font-semibold text-white mb-2">
                     Description
                   </h3>
-                  <p id="product-description" className="text-gray-600 dark:text-gray-400 leading-relaxed">
+                  <p id="product-description" className="text-gray-400 leading-relaxed">
                     {product.description}
                   </p>
                 </div>
@@ -188,7 +198,7 @@ export function ProductDrawer({ product, isOpen, onClose }: ProductDrawerProps) 
                 <div>
                   <div className="flex items-center gap-2 mb-2">
                     <AlertCircle className="w-5 h-5 text-amber-500" />
-                    <h3 className="font-semibold text-gray-900 dark:text-white">
+                    <h3 className="font-semibold text-white">
                       Allergènes
                     </h3>
                   </div>
@@ -196,7 +206,8 @@ export function ProductDrawer({ product, isOpen, onClose }: ProductDrawerProps) 
                     {product.allergens.map((allergen) => (
                       <span
                         key={allergen}
-                        className="px-3 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300 rounded-full text-sm font-medium"
+                        className="px-3 py-1 rounded-full text-sm font-medium"
+                        style={{ backgroundColor: 'rgba(251, 191, 36, 0.15)', color: '#FCD34D' }}
                       >
                         {allergen}
                       </span>
@@ -208,12 +219,12 @@ export function ProductDrawer({ product, isOpen, onClose }: ProductDrawerProps) 
               {/* Options (for future) */}
               {product.options && product.options.length > 0 && (
                 <div>
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-3">
+                  <h3 className="font-semibold text-white mb-3">
                     Options
                   </h3>
                   {product.options.map((option) => (
                     <div key={option.name} className="mb-4">
-                      <div className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      <div className="text-sm font-medium text-gray-300 mb-2">
                         {option.name}
                         {option.required && (
                           <span className="text-red-500 ml-1">*</span>
@@ -223,7 +234,10 @@ export function ProductDrawer({ product, isOpen, onClose }: ProductDrawerProps) 
                         {option.values.map((value) => (
                           <label
                             key={value.name}
-                            className="flex items-center gap-3 p-3 border border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800"
+                            className="flex items-center gap-3 p-3 border rounded-lg cursor-pointer transition-colors"
+                            style={{ borderColor: 'rgba(255, 255, 255, 0.1)', backgroundColor: 'transparent' }}
+                            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)')}
+                            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                           >
                             <input
                               type={option.required ? 'radio' : 'checkbox'}
@@ -231,11 +245,11 @@ export function ProductDrawer({ product, isOpen, onClose }: ProductDrawerProps) 
                               className="w-4 h-4"
                               style={{ accentColor: 'var(--brand-color)' }}
                             />
-                            <span className="flex-1 text-sm text-gray-700 dark:text-gray-300">
+                            <span className="flex-1 text-sm text-gray-300">
                               {value.name}
                             </span>
                             {value.priceModifier && value.priceModifier > 0 && (
-                              <span className="text-sm text-gray-500">
+                              <span className="text-sm text-gray-400">
                                 +{value.priceModifier} FCFA
                               </span>
                             )}
@@ -249,7 +263,7 @@ export function ProductDrawer({ product, isOpen, onClose }: ProductDrawerProps) 
 
               {/* Quantity Selector */}
               <div>
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-3">
+                <h3 className="font-semibold text-white mb-3">
                   Quantité
                 </h3>
                 <div className="flex items-center gap-4">
@@ -260,13 +274,13 @@ export function ProductDrawer({ product, isOpen, onClose }: ProductDrawerProps) 
                   >
                     −
                   </button>
-                  <span className="text-2xl font-bold text-gray-900 dark:text-white w-12 text-center">
+                  <span className="text-2xl font-bold text-white w-12 text-center">
                     {quantity}
                   </span>
                   <button
                     onClick={() => setQuantity(quantity + 1)}
-                    className="w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl text-white"
-                    style={{ backgroundColor: 'var(--brand-color)' }}
+                    className="w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl"
+                    style={{ backgroundColor: 'var(--brand-color)', color: '#000000' }}
                   >
                     +
                   </button>
@@ -279,11 +293,11 @@ export function ProductDrawer({ product, isOpen, onClose }: ProductDrawerProps) 
           </div>
 
           {/* Sticky Add to Cart Button */}
-          <div className="sticky bottom-0 left-0 right-0 p-4 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 shadow-lg">
+          <div className="sticky bottom-0 left-0 right-0 p-4 border-t shadow-lg" style={{ backgroundColor: '#1E1E1E', borderColor: 'rgba(255, 255, 255, 0.05)' }}>
             <motion.button
               onClick={handleAddToCart}
-              className="w-full py-4 rounded-2xl font-bold text-lg text-white flex items-center justify-center gap-3 shadow-lg"
-              style={{ backgroundColor: 'var(--brand-color)' }}
+              className="w-full py-4 rounded-2xl font-bold text-lg flex items-center justify-center gap-3 shadow-lg glow-orange"
+              style={{ backgroundColor: 'var(--brand-color)', color: '#000000' }}
               whileTap={{ scale: 0.98 }}
             >
               <ShoppingCart className="w-6 h-6" />
