@@ -1,8 +1,20 @@
 <svg width="1080" height="1920" viewBox="0 0 1080 1920" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <!-- Handwritten font style -->
+    <!-- Professional Typography -->
     <style>
-      @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@700&amp;display=swap');
+      @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&amp;family=Playfair+Display:wght@600;700&amp;family=Caveat:wght@700&amp;display=swap');
+
+      .elegant {
+        font-family: 'Playfair Display', serif;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+      }
+
+      .modern {
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+      }
 
       .handwritten {
         font-family: 'Caveat', cursive;
@@ -15,7 +27,17 @@
       }
     </style>
 
-    <!-- Paper texture -->
+    <!-- Subtle grain texture for organic feel -->
+    <filter id="grain-texture">
+      <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" seed="2"/>
+      <feColorMatrix type="saturate" values="0"/>
+      <feComponentTransfer>
+        <feFuncA type="discrete" tableValues="0 0.03"/>
+      </feComponentTransfer>
+      <feBlend mode="overlay" in="SourceGraphic"/>
+    </filter>
+
+    <!-- Paper texture with noise -->
     <filter id="paper-texture">
       <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" />
       <feColorMatrix type="saturate" values="0" />
@@ -25,33 +47,41 @@
       <feBlend mode="overlay" in="SourceGraphic" />
     </filter>
 
-    <!-- Soft shadow -->
+    <!-- Soft shadow with depth -->
     <filter id="soft-shadow">
-      <feGaussianBlur in="SourceAlpha" stdDeviation="8"/>
-      <feOffset dx="0" dy="4" result="offsetblur"/>
+      <feGaussianBlur in="SourceAlpha" stdDeviation="12"/>
+      <feOffset dx="0" dy="6" result="offsetblur"/>
       <feComponentTransfer>
-        <feFuncA type="linear" slope="0.15"/>
+        <feFuncA type="linear" slope="0.2"/>
       </feComponentTransfer>
       <feMerge>
         <feMergeNode/>
         <feMergeNode in="SourceGraphic"/>
       </feMerge>
     </filter>
+
+    <!-- Semi-transparent overlay for blending -->
+    <filter id="soft-blend">
+      <feGaussianBlur stdDeviation="0.5"/>
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.95"/>
+      </feComponentTransfer>
+    </filter>
   </defs>
 
   <!-- Background gradient -->
   <rect width="1080" height="1920" fill="#f8f5f0"/>
 
-  <!-- Polaroid frame with shadow -->
+  <!-- Polaroid frame with shadow and texture -->
   <g filter="url(#soft-shadow)">
-    <!-- White polaroid border -->
-    <rect x="90" y="280" width="900" height="1140" fill="white" rx="8"/>
+    <!-- White polaroid border with subtle texture -->
+    <rect x="90" y="280" width="900" height="1140" fill="white" fill-opacity="0.98" rx="8" filter="url(#grain-texture)"/>
 
     <!-- Photo area (will be replaced with actual photo) -->
     <rect id="photo-mask" x="120" y="310" width="840" height="1050" fill="#e0e0e0" rx="4"/>
 
-    <!-- Bottom caption area -->
-    <rect x="120" y="1360" width="840" height="60" fill="white"/>
+    <!-- Bottom caption area with soft blend -->
+    <rect x="120" y="1360" width="840" height="60" fill="white" fill-opacity="0.97" filter="url(#soft-blend)"/>
   </g>
 
   <!-- Decorative elements -->
@@ -65,22 +95,22 @@
     <text x="880" y="1510" text-anchor="middle" class="handwritten" font-size="36" fill="white">✓</text>
   </g>
 
-  <!-- Main handwritten text (will be customized) -->
-  <text id="main-text" x="540" y="180" text-anchor="middle" class="handwritten" font-size="72" fill="#2c2c2c">
+  <!-- Main elegant title -->
+  <text id="main-text" x="540" y="180" text-anchor="middle" class="elegant" font-size="68" fill="#2c2c2c">
     Foodie Passport
   </text>
 
-  <text id="subtitle-text" x="540" y="240" text-anchor="middle" class="handwritten" font-size="42" fill="#6b6b6b">
-    Certified Tasty Moment
+  <text id="subtitle-text" x="540" y="240" text-anchor="middle" class="modern" font-size="32" fill="#6b6b6b" opacity="0.85">
+    CERTIFIED TASTY MOMENT
   </text>
 
-  <!-- Bottom caption (restaurant name) -->
-  <text id="restaurant-name" x="540" y="1405" text-anchor="middle" class="handwritten" font-size="48" fill="#2c2c2c">
+  <!-- Bottom caption (restaurant name) - elegant serif -->
+  <text id="restaurant-name" x="540" y="1405" text-anchor="middle" class="elegant" font-size="52" fill="#1a1a1a">
     Restaurant Name
   </text>
 
-  <!-- Date stamp -->
-  <text id="date-stamp" x="540" y="1600" text-anchor="middle" class="mono" font-size="28" fill="#888">
+  <!-- Date stamp - modern sans-serif -->
+  <text id="date-stamp" x="540" y="1600" text-anchor="middle" class="modern" font-size="24" fill="#666" opacity="0.8">
     2024-01-01
   </text>
 

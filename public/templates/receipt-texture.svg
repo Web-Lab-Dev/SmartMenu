@@ -32,16 +32,25 @@
     </linearGradient>
 
     <style>
+      @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800;900&amp;family=Space+Mono:wght@700&amp;display=swap');
+
       .receipt-font {
-        font-family: 'Courier New', 'Consolas', monospace;
-        font-weight: bold;
+        font-family: 'Space Mono', 'Courier New', monospace;
+        font-weight: 700;
         letter-spacing: 0.05em;
       }
 
       .receipt-title {
-        font-family: 'Courier New', monospace;
+        font-family: 'Montserrat', sans-serif;
         font-weight: 900;
-        letter-spacing: 0.1em;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+      }
+
+      .receipt-modern {
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 800;
+        letter-spacing: 0.08em;
       }
     </style>
   </defs>
@@ -49,9 +58,9 @@
   <!-- Background with paper texture -->
   <rect width="1080" height="1920" fill="#faf8f5" filter="url(#receipt-paper)"/>
 
-  <!-- Receipt paper with crumpled edges -->
+  <!-- Receipt paper with crumpled edges and transparency -->
   <g filter="url(#crumpled)">
-    <rect x="140" y="60" width="800" height="1800" fill="white" filter="url(#receipt-paper)"/>
+    <rect x="140" y="60" width="800" height="1800" fill="white" fill-opacity="0.95" filter="url(#receipt-paper)"/>
 
     <!-- Perforated top edge -->
     <line x1="140" y1="80" x2="940" y2="80" stroke="#d0d0d0" stroke-width="1" stroke-dasharray="8 4"/>
@@ -70,21 +79,21 @@
       ═══════════════
     </text>
 
-    <text id="receipt-title" x="540" y="260" text-anchor="middle" class="receipt-title" font-size="64">
+    <text id="receipt-title" x="540" y="260" text-anchor="middle" class="receipt-title" font-size="56">
       FOODIE RECEIPT
     </text>
 
-    <text x="540" y="310" text-anchor="middle" class="receipt-title" font-size="56">
+    <text x="540" y="310" text-anchor="middle" class="receipt-title" font-size="48" opacity="0.6">
       ═══════════════
     </text>
 
-    <!-- Restaurant name -->
-    <text id="receipt-restaurant" x="540" y="400" text-anchor="middle" class="receipt-font" font-size="42">
+    <!-- Restaurant name - modern bold -->
+    <text id="receipt-restaurant" x="540" y="400" text-anchor="middle" class="receipt-modern" font-size="46">
       RESTAURANT NAME
     </text>
 
-    <!-- Date and time -->
-    <text id="receipt-datetime" x="540" y="450" text-anchor="middle" class="receipt-font" font-size="28" opacity="0.7">
+    <!-- Date and time - monospace -->
+    <text id="receipt-datetime" x="540" y="450" text-anchor="middle" class="receipt-font" font-size="26" opacity="0.75">
       01/01/2024 - 12:00 PM
     </text>
 
