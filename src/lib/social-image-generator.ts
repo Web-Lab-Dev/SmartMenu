@@ -168,22 +168,29 @@ function customizeSVGTemplate(
   onLog?.(`[SVG] Restaurant: ${restaurantName}`);
 
   // Passport template
-  const restaurantNameMatch = customized.match(/<text id="restaurant-name"([^>]*)>.*?<\/text>/);
+  // IMPORTANT: Use [\s\S] instead of . to match newlines
+  const restaurantNameMatch = customized.match(/<text id="restaurant-name"([^>]*)>[\s\S]*?<\/text>/);
   if (restaurantNameMatch) {
     onLog?.('[SVG] ✓ Tag restaurant-name trouvé (Passport)');
+    onLog?.(`[SVG] Match content: ${restaurantNameMatch[0].substring(0, 100)}`);
+  } else {
+    onLog?.('[SVG] ❌ Tag restaurant-name NON trouvé !');
   }
   customized = customized.replace(
-    /<text id="restaurant-name"([^>]*)>.*?<\/text>/g,
+    /<text id="restaurant-name"([^>]*)>[\s\S]*?<\/text>/g,
     `<text id="restaurant-name"$1>${restaurantName}</text>`
   );
 
   // Receipt template
-  const receiptRestaurantMatch = customized.match(/<text id="receipt-restaurant"([^>]*)>.*?<\/text>/);
+  const receiptRestaurantMatch = customized.match(/<text id="receipt-restaurant"([^>]*)>[\s\S]*?<\/text>/);
   if (receiptRestaurantMatch) {
     onLog?.('[SVG] ✓ Tag receipt-restaurant trouvé (Receipt)');
+    onLog?.(`[SVG] Match content: ${receiptRestaurantMatch[0].substring(0, 100)}`);
+  } else {
+    onLog?.('[SVG] ❌ Tag receipt-restaurant NON trouvé !');
   }
   customized = customized.replace(
-    /<text id="receipt-restaurant"([^>]*)>.*?<\/text>/g,
+    /<text id="receipt-restaurant"([^>]*)>[\s\S]*?<\/text>/g,
     `<text id="receipt-restaurant"$1>${restaurantName.toUpperCase()}</text>`
   );
 
@@ -198,7 +205,7 @@ function customizeSVGTemplate(
   });
   onLog?.(`[SVG] Date (Passport): ${shortDate}`);
   customized = customized.replace(
-    /<text id="date-stamp"([^>]*)>.*?<\/text>/g,
+    /<text id="date-stamp"([^>]*)>[\s\S]*?<\/text>/g,
     `<text id="date-stamp"$1>${shortDate}</text>`
   );
 
@@ -216,7 +223,7 @@ function customizeSVGTemplate(
 
   onLog?.(`[SVG] DateTime (Receipt): ${datetime}`);
   customized = customized.replace(
-    /<text id="receipt-datetime"([^>]*)>.*?<\/text>/g,
+    /<text id="receipt-datetime"([^>]*)>[\s\S]*?<\/text>/g,
     `<text id="receipt-datetime"$1>${datetime}</text>`
   );
 
