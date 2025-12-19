@@ -457,68 +457,55 @@ export function SocialCamera({
                       </div>
                     </div>
 
-                    {/* Shutter Button + Circular Filters */}
-                    <div className="flex justify-center relative">
-                      {/* Circular Filter Layout */}
-                      <div className="relative w-56 h-56 flex items-center justify-center">
-                        {/* Filters positioned in circle */}
-                        {CSS_FILTERS.map((filter, index) => {
-                          // Calculate position: 4 filters in circle (90° apart)
-                          // Starting from top (270° or -90°), going clockwise
-                          const angle = (270 + index * 90) * (Math.PI / 180); // Convert to radians
-                          const radius = 85; // Distance from center (reduced from 110)
-                          const x = Math.cos(angle) * radius;
-                          const y = Math.sin(angle) * radius;
-
-                          return (
-                            <motion.button
-                              key={`filter-${filter.id}`}
-                              onClick={() => setSelectedFilter(filter.id)}
-                              whileTap={{ scale: 0.9 }}
-                              className={`
-                                absolute
-                                flex flex-col items-center justify-center gap-0.5
-                                w-12 h-12 rounded-full
-                                transition-all duration-300 ease-out
-                                ${
-                                  selectedFilter === filter.id
-                                    ? 'bg-white scale-110 ring-2 ring-purple-500/50 shadow-xl'
-                                    : 'bg-white/20 backdrop-blur-md scale-100 hover:scale-105'
-                                }
-                              `}
-                              style={{
-                                left: `calc(50% + ${x}px)`,
-                                top: `calc(50% + ${y}px)`,
-                                transform: 'translate(-50%, -50%)',
-                              }}
-                            >
-                              <span className="text-xl">{filter.icon}</span>
-                              {selectedFilter === filter.id && (
-                                <span className="text-[8px] font-bold text-black">
-                                  {filter.label}
-                                </span>
-                              )}
-                            </motion.button>
-                          );
-                        })}
-
-                        {/* Shutter Button (Center) */}
-                        <motion.button
-                          onClick={capturePhoto}
-                          whileTap={{ scale: 0.85 }}
-                          className="relative group z-10"
-                        >
-                          {/* Outer Ring */}
-                          <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/40 to-white/10 blur-lg group-hover:blur-xl transition-all" />
-
-                          {/* Button */}
-                          <div className="relative w-24 h-24 rounded-full bg-white shadow-2xl flex items-center justify-center border-4 border-white/30 group-hover:border-white/50 transition-all">
-                            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-red-500 to-pink-600 flex items-center justify-center">
-                              <Camera className="w-10 h-10 text-white" />
-                            </div>
-                          </div>
-                        </motion.button>
+                    {/* Shutter Button + Horizontal Filters */}
+                    <div className="flex flex-col items-center gap-6">
+                      {/* Horizontal Filter Row */}
+                      <div className="flex items-center gap-4 justify-center">
+                        {CSS_FILTERS.map((filter, index) => (
+                          <motion.button
+                            key={`filter-${filter.id}`}
+                            onClick={() => setSelectedFilter(filter.id)}
+                            whileTap={{ scale: 0.9 }}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: index * 0.1 }}
+                            className={`
+                              flex flex-col items-center justify-center gap-1
+                              w-16 h-16 rounded-full
+                              transition-all duration-300 ease-out
+                              ${
+                                selectedFilter === filter.id
+                                  ? 'bg-white scale-110 ring-4 ring-purple-500/50 shadow-xl'
+                                  : 'bg-white/20 backdrop-blur-md scale-100 hover:scale-105'
+                              }
+                            `}
+                          >
+                            <span className="text-2xl">{filter.icon}</span>
+                            {selectedFilter === filter.id && (
+                              <span className="text-[9px] font-bold text-black -mt-0.5">
+                                {filter.label}
+                              </span>
+                            )}
+                          </motion.button>
+                        ))}
                       </div>
+
+                      {/* Shutter Button */}
+                      <motion.button
+                        onClick={capturePhoto}
+                        whileTap={{ scale: 0.85 }}
+                        className="relative group"
+                      >
+                        {/* Outer Ring */}
+                        <div className="absolute inset-0 rounded-full bg-linear-to-br from-white/40 to-white/10 blur-lg group-hover:blur-xl transition-all" />
+
+                        {/* Button */}
+                        <div className="relative w-24 h-24 rounded-full bg-white shadow-2xl flex items-center justify-center border-4 border-white/30 group-hover:border-white/50 transition-all">
+                          <div className="w-20 h-20 rounded-full bg-linear-to-br from-red-500 to-pink-600 flex items-center justify-center">
+                            <Camera className="w-10 h-10 text-white" />
+                          </div>
+                        </div>
+                      </motion.button>
                     </div>
                   </div>
                 </div>
