@@ -95,7 +95,7 @@ export function CompactOrderCard({ order, onStatusChange }: CompactOrderCardProp
         {/* Table Number */}
         <div className="flex items-center gap-2">
           <span className="text-2xl font-bold text-white">
-            {order.tableLabelString || `T${order.tableId}`}
+            {order.tableLabelString}
           </span>
           {isOld && isPending && (
             <AlertCircle className="w-4 h-4 text-red-400 animate-pulse" />

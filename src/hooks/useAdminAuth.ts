@@ -43,8 +43,11 @@ export function useAdminAuth(): UseAdminAuthReturn {
 
     // If no user or no restaurant, redirect to login
     if (!user || !user.restaurantId) {
-      console.log('[Admin Auth] Unauthorized access, redirecting to login');
-      router.replace('/login');
+      // Prevent redirect loop by checking current path
+      if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
+        console.log('[Admin Auth] Unauthorized access, redirecting to login');
+        router.replace('/login');
+      }
     }
   }, [user, loading, router]);
 

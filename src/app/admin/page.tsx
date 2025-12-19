@@ -74,7 +74,7 @@ export default function AdminDashboard() {
       bgColor: 'bg-orange-500/10',
     },
     {
-      label: 'Tables Actives',
+      label: 'Tables avec Commandes',
       value: activeTables.toString(),
       icon: Users,
       color: 'text-blue-500',

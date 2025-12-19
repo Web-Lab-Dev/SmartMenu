@@ -5,7 +5,7 @@ import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { RestaurantService } from '@/services/RestaurantService';
 import type { Restaurant, RestaurantBranding } from '@/types/schema';
 import { QRCodeSVG } from 'qrcode.react';
-import { Save, QrCode, Printer, ExternalLink, Loader2, Palette, Instagram, Facebook, Globe, ChevronDown } from 'lucide-react';
+import { Save, QrCode, Printer, ExternalLink, Loader2, Palette, Instagram, Facebook, Globe, ChevronDown, Download } from 'lucide-react';
 import { doc, updateDoc } from 'firebase/firestore';
 import { getDb } from '@/lib/firebase';
 import { COLLECTIONS } from '@/lib/constants';
@@ -109,6 +109,37 @@ export default function SettingsPage() {
 
   const handlePrint = () => {
     window.print();
+  };
+
+  const downloadQRCode = (tableLabel: string, qrUrl: string) => {
+    // Create a temporary canvas to render the QR code
+    const svg = document.getElementById(`qr-${tableLabel}`);
+    if (!svg) return;
+
+    const svgData = new XMLSerializer().serializeToString(svg);
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const img = new Image();
+
+    canvas.width = 300;
+    canvas.height = 300;
+
+    img.onload = () => {
+      ctx?.drawImage(img, 0, 0);
+      canvas.toBlob((blob) => {
+        if (blob) {
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `QR-${tableLabel}-${restaurant.name}.png`;
+          link.click();
+          URL.revokeObjectURL(url);
+          toast.success(`QR Code "${tableLabel}" téléchargé !`);
+        }
+      });
+    };
+
+    img.src = 'data:image/svg+xml;base64,' + btoa(svgData);
   };
 
   if (loading) {
@@ -500,6 +531,51 @@ export default function SettingsPage() {
 
           {/* QR Codes Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 print:gap-8">
+            {/* Online Order QR (No table) */}
+            <div className="bg-linear-to-br from-green-50 to-emerald-50 rounded-lg p-6 border-2 border-green-300 print:border-green-400 print:break-inside-avoid">
+              <h3 className="text-2xl font-bold text-green-700 text-center mb-2">
+                🌐 Commande en ligne
+              </h3>
+              <p className="text-xs text-green-600 text-center mb-4">
+                (Sans numéro de table)
+              </p>
+
+              <div className="flex justify-center mb-4">
+                <QRCodeSVG
+                  id="qr-online"
+                  value={`${baseUrl}/menu/${restaurant.slug}/online`}
+                  size={200}
+                  level="H"
+                  includeMargin
+                  className="border-4 border-green-100 rounded-lg"
+                />
+              </div>
+
+              <div className="flex gap-2 print:hidden">
+                <a
+                  href={`${baseUrl}/menu/${restaurant.slug}/online`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 flex items-center justify-center gap-2 text-sm text-green-600 hover:text-green-700 font-medium transition-colors"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  Tester
+                </a>
+                <button
+                  onClick={() => downloadQRCode('online', `${baseUrl}/menu/${restaurant.slug}/online`)}
+                  className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors"
+                >
+                  <Download className="w-4 h-4" />
+                  Télécharger
+                </button>
+              </div>
+
+              <p className="hidden print:block text-xs text-green-600 text-center mt-2 break-all">
+                {`${baseUrl}/menu/${restaurant.slug}/online`}
+              </p>
+            </div>
+
+            {/* Table QR Codes */}
             {Array.from({ length: numberOfTables }, (_, i) => {
               const tableNumber = i + 1;
               const qrUrl = `${baseUrl}/menu/${restaurant.slug}/table-${tableNumber}`;
@@ -509,14 +585,13 @@ export default function SettingsPage() {
                   key={tableNumber}
                   className="bg-white rounded-lg p-6 border-2 border-gray-200 print:border-gray-300 print:break-inside-avoid"
                 >
-                  {/* Table Title */}
                   <h3 className="text-2xl font-bold text-gray-900 text-center mb-4">
                     Table {tableNumber}
                   </h3>
 
-                  {/* QR Code */}
                   <div className="flex justify-center mb-4">
                     <QRCodeSVG
+                      id={`qr-table-${tableNumber}`}
                       value={qrUrl}
                       size={200}
                       level="H"
@@ -525,18 +600,25 @@ export default function SettingsPage() {
                     />
                   </div>
 
-                  {/* Test Link (Hidden on print) */}
-                  <a
-                    href={qrUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-2 text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors print:hidden"
-                  >
-                    <ExternalLink className="w-4 h-4" />
-                    Ouvrir le menu
-                  </a>
+                  <div className="flex gap-2 print:hidden">
+                    <a
+                      href={qrUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 flex items-center justify-center gap-2 text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors"
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                      Tester
+                    </a>
+                    <button
+                      onClick={() => downloadQRCode(`table-${tableNumber}`, qrUrl)}
+                      className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
+                    >
+                      <Download className="w-4 h-4" />
+                      Télécharger
+                    </button>
+                  </div>
 
-                  {/* URL for print */}
                   <p className="hidden print:block text-xs text-gray-600 text-center mt-2 break-all">
                     {qrUrl}
                   </p>

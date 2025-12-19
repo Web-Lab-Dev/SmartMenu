@@ -69,7 +69,7 @@ export function OrderCard({ order, isDragging = false, onStatusChange }: OrderCa
         <div>
           <div className="flex items-baseline gap-2">
             <span className="text-4xl font-bold text-white">
-              {order.tableLabelString || `Table ${order.tableId}`}
+              {order.tableLabelString}
             </span>
             {isOld && isPending && (
               <span className="text-red-400 text-sm font-semibold animate-pulse">

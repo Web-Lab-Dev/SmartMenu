@@ -460,13 +460,13 @@ export function SocialCamera({
                     {/* Shutter Button + Circular Filters */}
                     <div className="flex justify-center relative">
                       {/* Circular Filter Layout */}
-                      <div className="relative w-72 h-72 flex items-center justify-center">
+                      <div className="relative w-56 h-56 flex items-center justify-center">
                         {/* Filters positioned in circle */}
                         {CSS_FILTERS.map((filter, index) => {
                           // Calculate position: 4 filters in circle (90° apart)
                           // Starting from top (270° or -90°), going clockwise
                           const angle = (270 + index * 90) * (Math.PI / 180); // Convert to radians
-                          const radius = 110; // Distance from center
+                          const radius = 85; // Distance from center (reduced from 110)
                           const x = Math.cos(angle) * radius;
                           const y = Math.sin(angle) * radius;
 
@@ -477,13 +477,13 @@ export function SocialCamera({
                               whileTap={{ scale: 0.9 }}
                               className={`
                                 absolute
-                                flex flex-col items-center justify-center gap-1
-                                w-16 h-16 rounded-full
+                                flex flex-col items-center justify-center gap-0.5
+                                w-12 h-12 rounded-full
                                 transition-all duration-300 ease-out
                                 ${
                                   selectedFilter === filter.id
-                                    ? 'bg-white scale-125 ring-4 ring-purple-500/50 shadow-2xl'
-                                    : 'bg-white/20 backdrop-blur-md scale-100 hover:scale-110'
+                                    ? 'bg-white scale-110 ring-2 ring-purple-500/50 shadow-xl'
+                                    : 'bg-white/20 backdrop-blur-md scale-100 hover:scale-105'
                                 }
                               `}
                               style={{
@@ -492,9 +492,9 @@ export function SocialCamera({
                                 transform: 'translate(-50%, -50%)',
                               }}
                             >
-                              <span className="text-2xl">{filter.icon}</span>
+                              <span className="text-xl">{filter.icon}</span>
                               {selectedFilter === filter.id && (
-                                <span className="text-[9px] font-bold text-black -mt-0.5">
+                                <span className="text-[8px] font-bold text-black">
                                   {filter.label}
                                 </span>
                               )}
