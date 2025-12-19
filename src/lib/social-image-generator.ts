@@ -75,16 +75,30 @@ async function loadSVGTemplate(templatePath: string): Promise<string> {
 /**
  * Convertit un SVG string en Image pour le rendu canvas
  */
-function svgStringToImage(svgString: string): Promise<HTMLImageElement> {
+function svgStringToImage(svgString: string, onLog?: (message: string) => void): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
-    const blob = new Blob([svgString], { type: 'image/svg+xml' });
+    onLog?.(`[SVG→IMG] SVG length: ${svgString.length} chars`);
+
+    // Vérifier si le restaurant name a bien été remplacé dans le SVG
+    if (svgString.includes('Restaurant Name')) {
+      onLog?.('[SVG→IMG] ⚠️ PROBLÈME: "Restaurant Name" encore présent dans le SVG !');
+    }
+    if (svgString.includes('2024-01-01')) {
+      onLog?.('[SVG→IMG] ⚠️ PROBLÈME: "2024-01-01" encore présent dans le SVG !');
+    }
+
+    const blob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const img = new Image();
     img.onload = () => {
       URL.revokeObjectURL(url);
+      onLog?.('[SVG→IMG] ✓ Image chargée');
       resolve(img);
     };
-    img.onerror = reject;
+    img.onerror = (err) => {
+      onLog?.(`[SVG→IMG] ❌ Erreur chargement: ${err}`);
+      reject(err);
+    };
     img.src = url;
   });
 }
@@ -324,7 +338,7 @@ async function generateFoodiePassport(options: SocialImageOptions): Promise<stri
 
     // 4. Convertir SVG en Image
     onLog?.('[Passport] Conversion SVG → Image...');
-    const svgImage = await svgStringToImage(customizedSVG);
+    const svgImage = await svgStringToImage(customizedSVG, onLog);
     onLog?.('[Passport] ✓ Image convertie');
 
     // 5. Dessiner sur le canvas à haute résolution
@@ -378,7 +392,7 @@ async function generateReceiptAesthetic(options: SocialImageOptions): Promise<st
 
     // 4. Convertir SVG en Image
     onLog?.('[Receipt] Conversion SVG → Image...');
-    const svgImage = await svgStringToImage(customizedSVG);
+    const svgImage = await svgStringToImage(customizedSVG, onLog);
     onLog?.('[Receipt] ✓ Image convertie');
 
     // 5. Dessiner sur canvas
