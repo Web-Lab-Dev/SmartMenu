@@ -32,6 +32,14 @@ export function OrderCard({ order, isDragging = false, onStatusChange }: OrderCa
   const isOld = Date.now() - order.createdAt.getTime() > 5 * 60 * 1000; // > 5 minutes
   const isPending = order.status === 'pending_validation';
 
+  // Clean up malformed table labels from old orders (e.g., "Table table-1" → "Table 1")
+  const cleanTableLabel = (label: string): string => {
+    if (label.toLowerCase().startsWith('table table-')) {
+      return `Table ${label.split('-')[1]}`;
+    }
+    return label;
+  };
+
   const handleStatusChange = async (newStatus: string) => {
     if (!onStatusChange || isProcessing) return;
 
@@ -69,7 +77,7 @@ export function OrderCard({ order, isDragging = false, onStatusChange }: OrderCa
         <div>
           <div className="flex items-baseline gap-2">
             <span className="text-4xl font-bold text-white">
-              {order.tableLabelString}
+              {cleanTableLabel(order.tableLabelString)}
             </span>
             {isOld && isPending && (
               <span className="text-red-400 text-sm font-semibold animate-pulse">
