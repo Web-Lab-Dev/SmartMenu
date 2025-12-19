@@ -112,6 +112,8 @@ export default function SettingsPage() {
   };
 
   const downloadQRCode = (tableLabel: string, qrUrl: string) => {
+    if (!restaurant) return;
+
     // Create a temporary canvas to render the QR code
     const svg = document.getElementById(`qr-${tableLabel}`);
     if (!svg) return;
