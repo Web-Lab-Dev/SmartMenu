@@ -13,6 +13,7 @@ export interface SocialImageOptions {
   restaurantLogo?: string;
   menuUrl: string;
   primaryColor?: string;
+  onLog?: (message: string) => void; // Callback pour les logs
 }
 
 /**
@@ -98,9 +99,12 @@ function customizeSVGTemplate(
     photoDataUrl: string;
     qrDataUrl: string;
     date?: string;
-  }
+  },
+  onLog?: (message: string) => void
 ): string {
   let customized = svgContent;
+
+  onLog?.('[SVG] Début customization...');
 
   // Injecter la photo dans le masque
   if (options.photoDataUrl) {
@@ -147,12 +151,12 @@ function customizeSVGTemplate(
   // Remplacer le nom du restaurant
   const restaurantName = options.restaurantName || 'Restaurant';
 
-  console.log('[SVG] Replacing restaurant name with:', restaurantName);
+  onLog?.(`[SVG] Restaurant: ${restaurantName}`);
 
   // Passport template
-  const restaurantNameRegex = /<text id="restaurant-name"([^>]*)>.*?<\/text>/g;
-  if (restaurantNameRegex.test(customized)) {
-    console.log('[SVG] Found restaurant-name tag in Passport template');
+  const restaurantNameMatch = customized.match(/<text id="restaurant-name"([^>]*)>.*?<\/text>/);
+  if (restaurantNameMatch) {
+    onLog?.('[SVG] ✓ Tag restaurant-name trouvé (Passport)');
   }
   customized = customized.replace(
     /<text id="restaurant-name"([^>]*)>.*?<\/text>/g,
@@ -160,9 +164,9 @@ function customizeSVGTemplate(
   );
 
   // Receipt template
-  const receiptRestaurantRegex = /<text id="receipt-restaurant"([^>]*)>.*?<\/text>/g;
-  if (receiptRestaurantRegex.test(customized)) {
-    console.log('[SVG] Found receipt-restaurant tag in Receipt template');
+  const receiptRestaurantMatch = customized.match(/<text id="receipt-restaurant"([^>]*)>.*?<\/text>/);
+  if (receiptRestaurantMatch) {
+    onLog?.('[SVG] ✓ Tag receipt-restaurant trouvé (Receipt)');
   }
   customized = customized.replace(
     /<text id="receipt-restaurant"([^>]*)>.*?<\/text>/g,
@@ -178,7 +182,7 @@ function customizeSVGTemplate(
     month: 'short',
     year: 'numeric',
   });
-  console.log('[SVG] Replacing date-stamp with:', shortDate);
+  onLog?.(`[SVG] Date (Passport): ${shortDate}`);
   customized = customized.replace(
     /<text id="date-stamp"([^>]*)>.*?<\/text>/g,
     `<text id="date-stamp"$1>${shortDate}</text>`
@@ -196,13 +200,13 @@ function customizeSVGTemplate(
   });
   const datetime = `${fullDate} - ${time}`;
 
-  console.log('[SVG] Replacing receipt-datetime with:', datetime);
+  onLog?.(`[SVG] DateTime (Receipt): ${datetime}`);
   customized = customized.replace(
     /<text id="receipt-datetime"([^>]*)>.*?<\/text>/g,
     `<text id="receipt-datetime"$1>${datetime}</text>`
   );
 
-  console.log('[SVG] Customization complete with:', { restaurantName, shortDate, datetime });
+  onLog?.('[SVG] ✅ Customization terminée');
 
   return customized;
 }
@@ -290,6 +294,7 @@ async function generateStandardFrame(options: SocialImageOptions): Promise<strin
  * Cadre polaroid chic avec texte manuscrit
  */
 async function generateFoodiePassport(options: SocialImageOptions): Promise<string> {
+  const { onLog } = options;
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d')!;
 
@@ -298,28 +303,39 @@ async function generateFoodiePassport(options: SocialImageOptions): Promise<stri
 
   try {
     // 1. Générer le QR code
+    onLog?.('[Passport] Génération QR code...');
     const qrCode = await generateQRCode(options.menuUrl, 200);
+    onLog?.(qrCode ? '[Passport] ✓ QR code généré' : '[Passport] ❌ QR code failed');
 
     // 2. Charger le template SVG
+    onLog?.('[Passport] Chargement template SVG...');
     const svgTemplate = await loadSVGTemplate('/templates/passport-frame.svg');
+    onLog?.(`[Passport] ✓ Template chargé (${svgTemplate.length} chars)`);
 
     // 3. Personnaliser le SVG avec les données
+    onLog?.('[Passport] Personnalisation SVG...');
     const customizedSVG = customizeSVGTemplate(svgTemplate, {
       restaurantName: options.restaurantName,
       photoDataUrl: options.webcamImageSrc,
       qrDataUrl: qrCode,
       date: new Date().toLocaleDateString('fr-FR'),
-    });
+    }, onLog);
+    onLog?.('[Passport] ✓ SVG personnalisé');
 
     // 4. Convertir SVG en Image
+    onLog?.('[Passport] Conversion SVG → Image...');
     const svgImage = await svgStringToImage(customizedSVG);
+    onLog?.('[Passport] ✓ Image convertie');
 
     // 5. Dessiner sur le canvas à haute résolution
     ctx.drawImage(svgImage, 0, 0, canvas.width, canvas.height);
+    onLog?.('[Passport] ✓ Image dessinée sur canvas');
 
     // 6. Export haute qualité
+    onLog?.('[Passport] ✅ Export terminé');
     return canvas.toDataURL('image/jpeg', 0.95);
   } catch (error) {
+    onLog?.(`[Passport] ❌ ERREUR: ${error instanceof Error ? error.message : 'Unknown'}`);
     console.error('[FoodiePassport] Error:', error);
     // Fallback to standard frame
     return generateStandardFrame(options);
@@ -331,10 +347,9 @@ async function generateFoodiePassport(options: SocialImageOptions): Promise<stri
  * Style ticket de caisse rétro
  */
 async function generateReceiptAesthetic(options: SocialImageOptions): Promise<string> {
-  console.log('[ReceiptAesthetic] Starting generation with options:', {
-    restaurantName: options.restaurantName,
-    menuUrl: options.menuUrl,
-  });
+  const { onLog } = options;
+
+  onLog?.('[Receipt] Génération QR code...');
 
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d')!;
@@ -344,39 +359,39 @@ async function generateReceiptAesthetic(options: SocialImageOptions): Promise<st
 
   try {
     // 1. Générer le QR code
-    console.log('[ReceiptAesthetic] Generating QR code...');
     const qrCode = await generateQRCode(options.menuUrl, 200);
-    console.log('[ReceiptAesthetic] QR code generated:', qrCode ? 'SUCCESS' : 'FAILED');
+    onLog?.(qrCode ? '[Receipt] ✓ QR code généré' : '[Receipt] ❌ QR code failed');
 
     // 2. Charger le template SVG
-    console.log('[ReceiptAesthetic] Loading SVG template...');
+    onLog?.('[Receipt] Chargement template SVG...');
     const svgTemplate = await loadSVGTemplate('/templates/receipt-texture.svg');
+    onLog?.(`[Receipt] ✓ Template chargé (${svgTemplate.length} chars)`);
 
     // 3. Personnaliser le SVG
-    console.log('[ReceiptAesthetic] Customizing SVG...');
+    onLog?.('[Receipt] Personnalisation SVG...');
     const customizedSVG = customizeSVGTemplate(svgTemplate, {
       restaurantName: options.restaurantName,
       photoDataUrl: options.webcamImageSrc,
       qrDataUrl: qrCode,
-    });
-    console.log('[ReceiptAesthetic] SVG customized, length:', customizedSVG.length);
+    }, onLog);
+    onLog?.('[Receipt] ✓ SVG personnalisé');
 
     // 4. Convertir SVG en Image
-    console.log('[ReceiptAesthetic] Converting SVG to image...');
+    onLog?.('[Receipt] Conversion SVG → Image...');
     const svgImage = await svgStringToImage(customizedSVG);
-    console.log('[ReceiptAesthetic] SVG converted to image');
+    onLog?.('[Receipt] ✓ Image convertie');
 
     // 5. Dessiner sur canvas
     ctx.drawImage(svgImage, 0, 0, canvas.width, canvas.height);
-    console.log('[ReceiptAesthetic] Image drawn to canvas');
+    onLog?.('[Receipt] ✓ Image dessinée sur canvas');
 
     // 6. Export haute qualité
     const result = canvas.toDataURL('image/jpeg', 0.95);
-    console.log('[ReceiptAesthetic] Export complete');
+    onLog?.('[Receipt] ✅ Export terminé');
     return result;
   } catch (error) {
+    onLog?.(`[Receipt] ❌ ERREUR: ${error instanceof Error ? error.message : 'Unknown'}`);
     console.error('[ReceiptAesthetic] Error:', error);
-    console.error('[ReceiptAesthetic] Falling back to standard frame');
     // Fallback to standard frame
     return generateStandardFrame(options);
   }

@@ -276,6 +276,7 @@ export function SocialCamera({
           restaurantLogo,
           menuUrl,
           primaryColor,
+          onLog: addDebugLog, // Passer le callback de log
         });
         addDebugLog('✅ Image générée avec succès');
         addDebugLog(`Taille: ${(result.length / 1024).toFixed(0)}KB`);
