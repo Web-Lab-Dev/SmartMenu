@@ -375,6 +375,7 @@ export default function MenuPage({ params: paramsPromise }: PageProps) {
           open={cartDrawerOpen}
           onOpenChange={setCartDrawerOpen}
           restaurantId={restaurant.id}
+          restaurantName={restaurant.name}
           tableId={tableId}
           tableLabelString={tableId.startsWith('table-') ? `Table ${tableId.split('-')[1]}` : tableId === 'online' ? 'Commande en ligne' : `Table ${tableId}`}
           customerSessionId={customerSessionId}

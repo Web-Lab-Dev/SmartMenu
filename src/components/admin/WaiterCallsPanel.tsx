@@ -19,6 +19,14 @@ interface WaiterCallsPanelProps {
 export function WaiterCallsPanel({ restaurantId }: WaiterCallsPanelProps) {
   const [calls, setCalls] = useState<WaiterCall[]>([]);
 
+  // Clean up malformed table labels from old data (e.g., "Table table-1" → "Table 1")
+  const cleanTableLabel = (label: string): string => {
+    if (label.toLowerCase().startsWith('table table-')) {
+      return `Table ${label.split('-')[1]}`;
+    }
+    return label;
+  };
+
   useEffect(() => {
     console.log('[WaiterCallsPanel] Component mounted with restaurantId:', restaurantId);
 
@@ -98,7 +106,7 @@ export function WaiterCallsPanel({ restaurantId }: WaiterCallsPanelProps) {
 
               <div className="flex-1 min-w-0">
                 <h4 className="text-lg font-bold text-white mb-1">
-                  {call.tableLabelString}
+                  {cleanTableLabel(call.tableLabelString)}
                 </h4>
                 <p className="text-sm text-gray-300">
                   {call.status === 'pending' ? 'Appel en attente' : 'En cours'}

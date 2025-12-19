@@ -19,6 +19,11 @@ interface ScratchGameModalProps {
   restaurantId: string;
 
   /**
+   * Restaurant name for dynamic title
+   */
+  restaurantName: string;
+
+  /**
    * Callback when modal is closed
    */
   onClose: () => void;
@@ -66,6 +71,7 @@ interface GameResult {
 export function ScratchGameModal({
   campaignId,
   restaurantId,
+  restaurantName,
   onClose,
   onComplete,
 }: ScratchGameModalProps) {
@@ -201,7 +207,7 @@ export function ScratchGameModal({
             {/* Header */}
             <div className="bg-gradient-to-r from-orange-500 to-red-500 p-6 text-center">
               <Gift className="w-12 h-12 mx-auto mb-2 text-white" />
-              <h2 className="text-2xl font-bold text-white">Tombola RestoTech</h2>
+              <h2 className="text-2xl font-bold text-white">Tombola {restaurantName}</h2>
               <p className="text-white/90 text-sm mt-1">Grattez pour découvrir votre surprise!</p>
             </div>
 

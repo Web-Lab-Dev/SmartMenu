@@ -415,8 +415,9 @@ export function SocialCamera({
                   <div className="relative px-4 pb-8">
                     {/* All Controls in Horizontal Row */}
                     <div className="flex flex-col items-center gap-8">
-                      {/* Templates + Filters in Single Row */}
-                      <div className="flex items-center gap-3 justify-center flex-wrap">
+                      {/* Templates + Filters in Single Row - Horizontal Scroll */}
+                      <div className="w-full overflow-x-auto scrollbar-hide">
+                        <div className="flex items-center gap-3 justify-start px-4 min-w-max">
                         {/* Templates */}
                         {TEMPLATES.map((template, index) => (
                           <motion.button
@@ -473,6 +474,7 @@ export function SocialCamera({
                             )}
                           </motion.button>
                         ))}
+                        </div>
                       </div>
 
                       {/* Shutter Button */}
@@ -582,6 +584,17 @@ export function SocialCamera({
           )}
         </div>
       </motion.div>
+
+      {/* Hide scrollbar CSS */}
+      <style jsx>{`
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+      `}</style>
     </AnimatePresence>
   );
 }

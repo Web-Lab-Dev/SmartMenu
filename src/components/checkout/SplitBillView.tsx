@@ -19,6 +19,14 @@ interface SplitBillViewProps {
 }
 
 export function SplitBillView({ order, onPaymentClick }: SplitBillViewProps) {
+  // Clean up malformed table labels from old orders (e.g., "Table table-1" → "Table 1")
+  const cleanTableLabel = (label: string): string => {
+    if (label.toLowerCase().startsWith('table table-')) {
+      return `Table ${label.split('-')[1]}`;
+    }
+    return label;
+  };
+
   // Convert order items to split bill items with unique IDs
   const [splitItems, setSplitItems] = useState<SplitBillItem[]>(
     order.items.map((item) => ({
@@ -98,7 +106,7 @@ export function SplitBillView({ order, onPaymentClick }: SplitBillViewProps) {
                 Qui paie quoi ?
               </h1>
               <p className="text-sm text-gray-400 mt-1">
-                Table {order.tableLabelString}
+                {cleanTableLabel(order.tableLabelString)}
               </p>
             </div>
 

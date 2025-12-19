@@ -19,6 +19,7 @@ interface CartDrawerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   restaurantId: string;
+  restaurantName: string;
   tableId: string;
   tableLabelString: string;
   customerSessionId: string;
@@ -28,6 +29,7 @@ export function CartDrawer({
   open,
   onOpenChange,
   restaurantId,
+  restaurantName,
   tableId,
   tableLabelString,
   customerSessionId,
@@ -558,6 +560,7 @@ export function CartDrawer({
         <ScratchGameModal
           campaignId={activeCampaign.id}
           restaurantId={restaurantId}
+          restaurantName={restaurantName}
           onClose={() => {
             setShowScratchCard(false);
             setActiveCampaign(null);
