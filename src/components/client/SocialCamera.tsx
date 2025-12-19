@@ -29,9 +29,8 @@ interface SocialCameraProps {
 type CSSFilter = 'natural' | 'vintage-warm' | 'neon-cool' | 'bw-chic';
 
 const TEMPLATES: { id: TemplateType; label: string; emoji: string }[] = [
-  { id: 'standard', label: 'Classic', emoji: '🖼️' },
-  { id: 'passport', label: 'Passport', emoji: '✈️' },
   { id: 'receipt', label: 'Receipt', emoji: '🧾' },
+  { id: 'passport', label: 'Passport', emoji: '✈️' },
 ];
 
 /**
@@ -78,7 +77,7 @@ export function SocialCamera({
   const streamRef = useRef<MediaStream | null>(null);
 
   const [facingMode, setFacingMode] = useState<'user' | 'environment'>('user');
-  const [selectedTemplate, setSelectedTemplate] = useState<TemplateType>('passport');
+  const [selectedTemplate, setSelectedTemplate] = useState<TemplateType>('receipt');
   const [selectedFilter, setSelectedFilter] = useState<CSSFilter>('natural');
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
@@ -414,9 +413,8 @@ export function SocialCamera({
 
                   {/* Content */}
                   <div className="relative px-4 pb-8">
-                    {/* Carrousel de Sélection (Templates + Filtres) */}
-                    <div className="mb-8">
-                      {/* Scrollable Container with Snap */}
+                    {/* Templates Carousel (Top) */}
+                    <div className="mb-12">
                       <div
                         className="flex gap-4 overflow-x-auto pb-4 px-4 -mx-4 snap-x snap-mandatory scrollbar-hide"
                         style={{
@@ -425,7 +423,7 @@ export function SocialCamera({
                           WebkitOverflowScrolling: 'touch',
                         }}
                       >
-                        {/* Padding spacer gauche pour centrer le premier */}
+                        {/* Padding spacer gauche */}
                         <div className="shrink-0 w-[calc(50vw-4rem)]" />
 
                         {/* Templates */}
@@ -454,54 +452,73 @@ export function SocialCamera({
                           </button>
                         ))}
 
-                        {/* Filtres CSS */}
-                        {CSS_FILTERS.map((filter) => (
-                          <button
-                            key={`filter-${filter.id}`}
-                            onClick={() => setSelectedFilter(filter.id)}
-                            className={`
-                              shrink-0 snap-center
-                              flex flex-col items-center justify-center gap-2
-                              w-20 h-20 rounded-full
-                              transition-all duration-300 ease-out
-                              ${
-                                selectedFilter === filter.id
-                                  ? 'bg-white scale-125 ring-4 ring-purple-500/50 shadow-2xl'
-                                  : 'bg-white/20 backdrop-blur-md scale-100 hover:scale-110'
-                              }
-                            `}
-                          >
-                            <span className="text-3xl">{filter.icon}</span>
-                            {selectedFilter === filter.id && (
-                              <span className="text-[10px] font-bold text-black -mt-1">
-                                {filter.label}
-                              </span>
-                            )}
-                          </button>
-                        ))}
-
-                        {/* Padding spacer droit pour centrer le dernier */}
+                        {/* Padding spacer droit */}
                         <div className="shrink-0 w-[calc(50vw-4rem)]" />
                       </div>
                     </div>
 
-                    {/* Shutter Button */}
-                    <div className="flex justify-center">
-                      <motion.button
-                        onClick={capturePhoto}
-                        whileTap={{ scale: 0.85 }}
-                        className="relative group"
-                      >
-                        {/* Outer Ring */}
-                        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/40 to-white/10 blur-lg group-hover:blur-xl transition-all" />
+                    {/* Shutter Button + Circular Filters */}
+                    <div className="flex justify-center relative">
+                      {/* Circular Filter Layout */}
+                      <div className="relative w-72 h-72 flex items-center justify-center">
+                        {/* Filters positioned in circle */}
+                        {CSS_FILTERS.map((filter, index) => {
+                          // Calculate position: 4 filters in circle (90° apart)
+                          // Starting from top (270° or -90°), going clockwise
+                          const angle = (270 + index * 90) * (Math.PI / 180); // Convert to radians
+                          const radius = 110; // Distance from center
+                          const x = Math.cos(angle) * radius;
+                          const y = Math.sin(angle) * radius;
 
-                        {/* Button */}
-                        <div className="relative w-24 h-24 rounded-full bg-white shadow-2xl flex items-center justify-center border-4 border-white/30 group-hover:border-white/50 transition-all">
-                          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-red-500 to-pink-600 flex items-center justify-center">
-                            <Camera className="w-10 h-10 text-white" />
+                          return (
+                            <motion.button
+                              key={`filter-${filter.id}`}
+                              onClick={() => setSelectedFilter(filter.id)}
+                              whileTap={{ scale: 0.9 }}
+                              className={`
+                                absolute
+                                flex flex-col items-center justify-center gap-1
+                                w-16 h-16 rounded-full
+                                transition-all duration-300 ease-out
+                                ${
+                                  selectedFilter === filter.id
+                                    ? 'bg-white scale-125 ring-4 ring-purple-500/50 shadow-2xl'
+                                    : 'bg-white/20 backdrop-blur-md scale-100 hover:scale-110'
+                                }
+                              `}
+                              style={{
+                                left: `calc(50% + ${x}px)`,
+                                top: `calc(50% + ${y}px)`,
+                                transform: 'translate(-50%, -50%)',
+                              }}
+                            >
+                              <span className="text-2xl">{filter.icon}</span>
+                              {selectedFilter === filter.id && (
+                                <span className="text-[9px] font-bold text-black -mt-0.5">
+                                  {filter.label}
+                                </span>
+                              )}
+                            </motion.button>
+                          );
+                        })}
+
+                        {/* Shutter Button (Center) */}
+                        <motion.button
+                          onClick={capturePhoto}
+                          whileTap={{ scale: 0.85 }}
+                          className="relative group z-10"
+                        >
+                          {/* Outer Ring */}
+                          <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/40 to-white/10 blur-lg group-hover:blur-xl transition-all" />
+
+                          {/* Button */}
+                          <div className="relative w-24 h-24 rounded-full bg-white shadow-2xl flex items-center justify-center border-4 border-white/30 group-hover:border-white/50 transition-all">
+                            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-red-500 to-pink-600 flex items-center justify-center">
+                              <Camera className="w-10 h-10 text-white" />
+                            </div>
                           </div>
-                        </div>
-                      </motion.button>
+                        </motion.button>
+                      </div>
                     </div>
                   </div>
                 </div>

@@ -2,9 +2,9 @@
 // Social Image Generator - SVG Template Engine (REFACTORED)
 // ========================================
 // Utilise des templates SVG pour une qualité native professionnelle
-// Modes : Standard Frame, Foodie Passport, Receipt Aesthetic
+// Modes : Receipt Aesthetic, Foodie Passport
 
-export type TemplateType = 'standard' | 'passport' | 'receipt';
+export type TemplateType = 'passport' | 'receipt';
 
 export interface SocialImageOptions {
   webcamImageSrc: string;
@@ -229,85 +229,7 @@ function customizeSVGTemplate(
 }
 
 /**
- * Mode A : Standard Frame
- * Photo plein écran avec cadre blanc simple
- */
-async function generateStandardFrame(options: SocialImageOptions): Promise<string> {
-  const canvas = document.createElement('canvas');
-  const ctx = canvas.getContext('2d')!;
-
-  // Haute résolution Instagram Story
-  canvas.width = 1080;
-  canvas.height = 1920;
-
-  try {
-    // 1. Charger la photo webcam
-    const webcamImg = await loadImage(options.webcamImageSrc);
-
-    // 2. Dessiner la photo (cover - remplir tout l'écran)
-    const scale = Math.max(canvas.width / webcamImg.width, canvas.height / webcamImg.height);
-    const x = (canvas.width - webcamImg.width * scale) / 2;
-    const y = (canvas.height - webcamImg.height * scale) / 2;
-    ctx.drawImage(webcamImg, x, y, webcamImg.width * scale, webcamImg.height * scale);
-
-    // 3. Cadre blanc élégant
-    const frameWidth = 40;
-    ctx.strokeStyle = 'white';
-    ctx.lineWidth = frameWidth;
-    ctx.strokeRect(frameWidth / 2, frameWidth / 2, canvas.width - frameWidth, canvas.height - frameWidth);
-
-    // 4. Footer avec nom restaurant et QR
-    const footerHeight = 240;
-    const gradient = ctx.createLinearGradient(0, canvas.height - footerHeight, 0, canvas.height);
-    gradient.addColorStop(0, 'rgba(0, 0, 0, 0.8)');
-    gradient.addColorStop(1, 'rgba(0, 0, 0, 0.95)');
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, canvas.height - footerHeight, canvas.width, footerHeight);
-
-    // Logo restaurant (si disponible)
-    if (options.restaurantLogo) {
-      try {
-        const logo = await loadImage(options.restaurantLogo);
-        const logoSize = 100;
-        ctx.drawImage(
-          logo,
-          canvas.width / 2 - logoSize / 2,
-          canvas.height - footerHeight + 30,
-          logoSize,
-          logoSize
-        );
-      } catch (err) {
-        console.warn('[StandardFrame] Logo load failed:', err);
-      }
-    }
-
-    // Nom restaurant
-    ctx.fillStyle = 'white';
-    ctx.font = 'bold 48px Arial, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText(options.restaurantName, canvas.width / 2, canvas.height - footerHeight + 150);
-
-    // QR Code
-    const qrCode = await generateQRCode(options.menuUrl, 140);
-    if (qrCode) {
-      const qrImg = await loadImage(qrCode);
-      ctx.drawImage(qrImg, canvas.width / 2 - 70, canvas.height - 150, 140, 140);
-    }
-
-    // Message
-    ctx.font = '24px Arial, sans-serif';
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-    ctx.fillText('Scannez pour commander', canvas.width / 2, canvas.height - 15);
-
-    return canvas.toDataURL('image/jpeg', 0.95);
-  } catch (error) {
-    console.error('[StandardFrame] Error:', error);
-    throw error;
-  }
-}
-
-/**
- * Mode B : Foodie Passport (Template SVG)
+ * Mode A : Foodie Passport (Template SVG)
  * Cadre polaroid chic avec texte manuscrit
  */
 async function generateFoodiePassport(options: SocialImageOptions): Promise<string> {
@@ -354,13 +276,12 @@ async function generateFoodiePassport(options: SocialImageOptions): Promise<stri
   } catch (error) {
     onLog?.(`[Passport] ❌ ERREUR: ${error instanceof Error ? error.message : 'Unknown'}`);
     console.error('[FoodiePassport] Error:', error);
-    // Fallback to standard frame
-    return generateStandardFrame(options);
+    throw error;
   }
 }
 
 /**
- * Mode C : Receipt Aesthetic (Template SVG)
+ * Mode B : Receipt Aesthetic (Template SVG)
  * Style ticket de caisse rétro
  */
 async function generateReceiptAesthetic(options: SocialImageOptions): Promise<string> {
@@ -409,8 +330,7 @@ async function generateReceiptAesthetic(options: SocialImageOptions): Promise<st
   } catch (error) {
     onLog?.(`[Receipt] ❌ ERREUR: ${error instanceof Error ? error.message : 'Unknown'}`);
     console.error('[ReceiptAesthetic] Error:', error);
-    // Fallback to standard frame
-    return generateStandardFrame(options);
+    throw error;
   }
 }
 
@@ -422,13 +342,11 @@ export async function generateSocialImage(options: SocialImageOptions): Promise<
 
   try {
     switch (options.templateType) {
-      case 'passport':
-        return await generateFoodiePassport(options);
       case 'receipt':
         return await generateReceiptAesthetic(options);
-      case 'standard':
+      case 'passport':
       default:
-        return await generateStandardFrame(options);
+        return await generateFoodiePassport(options);
     }
   } catch (error) {
     console.error('[SocialImageGenerator] Fatal error:', error);
