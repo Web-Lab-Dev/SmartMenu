@@ -1,23 +1,14 @@
 // ========================================
-// SocialCamera Component - Instagram Story Style
+// SocialCamera Component - NATIVE IMPLEMENTATION
 // ========================================
-// Caméra avec templates viraux : Standard Frame, Foodie Passport, Receipt
+// Caméra native plein écran avec getUserMedia (no libraries)
+// Qualité HD professionnelle avec templates viraux
 
 'use client';
 
-import { useState, useRef, useCallback, useEffect } from 'react';
-import Webcam from 'react-webcam';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  X,
-  Camera,
-  Download,
-  Share2,
-  RotateCw,
-  Sparkles,
-  Loader2,
-  Wand2,
-} from 'lucide-react';
+import { X, Camera, Download, Share2, RotateCw, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   generateSocialImage,
@@ -25,8 +16,6 @@ import {
   shareImage,
   type TemplateType,
 } from '@/lib/social-image-generator';
-import { useFaceTracking, type StickerType } from '@/hooks/useFaceTracking';
-import { ARStickerOverlay } from './ARStickerOverlay';
 
 interface SocialCameraProps {
   isOpen: boolean;
@@ -39,10 +28,10 @@ interface SocialCameraProps {
 
 type CSSFilter = 'none' | 'sepia' | 'grayscale' | 'contrast' | 'vintage';
 
-const TEMPLATES: { id: TemplateType; label: string; emoji: string; description: string }[] = [
-  { id: 'standard', label: 'Classic', emoji: '🖼️', description: 'Cadre élégant' },
-  { id: 'passport', label: 'Passport', emoji: '✈️', description: 'Polaroid chic' },
-  { id: 'receipt', label: 'Receipt', emoji: '🧾', description: 'Ticket rétro' },
+const TEMPLATES: { id: TemplateType; label: string; emoji: string }[] = [
+  { id: 'standard', label: 'Classic', emoji: '🖼️' },
+  { id: 'passport', label: 'Passport', emoji: '✈️' },
+  { id: 'receipt', label: 'Receipt', emoji: '🧾' },
 ];
 
 const CSS_FILTERS: { id: CSSFilter; label: string; css: string }[] = [
@@ -50,12 +39,9 @@ const CSS_FILTERS: { id: CSSFilter; label: string; css: string }[] = [
   { id: 'sepia', label: 'Sépia', css: 'sepia(0.8)' },
   { id: 'grayscale', label: 'N&B', css: 'grayscale(1)' },
   { id: 'contrast', label: 'Contraste', css: 'contrast(1.3) brightness(1.1)' },
-  { id: 'vintage', label: 'Vintage', css: 'sepia(0.5) contrast(1.2) brightness(0.9)' },
+  { id: 'vintage', label: 'Vintage', css: 'sepia(0.5) contrast(1.2)' },
 ];
 
-/**
- * SocialCamera - Caméra avec templates Instagram Story
- */
 export function SocialCamera({
   isOpen,
   onClose,
@@ -64,167 +50,207 @@ export function SocialCamera({
   menuUrl,
   primaryColor,
 }: SocialCameraProps) {
-  const webcamRef = useRef<Webcam>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const arCanvasRef = useRef<HTMLCanvasElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+
   const [facingMode, setFacingMode] = useState<'user' | 'environment'>('user');
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateType>('passport');
   const [selectedFilter, setSelectedFilter] = useState<CSSFilter>('none');
-  const [selectedSticker, setSelectedSticker] = useState<StickerType>('none');
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
-  const [showStickers, setShowStickers] = useState(false);
+  const [cameraError, setCameraError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Initialiser videoRef depuis webcamRef
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (webcamRef.current && !videoRef.current) {
-        const video = (webcamRef.current as any).video;
-        if (video) {
-          videoRef.current = video;
-          console.log('[SocialCamera] Video ref initialized:', video.videoWidth, 'x', video.videoHeight);
-          clearInterval(interval);
-        }
+  // Initialiser la caméra avec getUserMedia (NATIVE)
+  const initCamera = useCallback(async () => {
+    console.log('[Camera] Initializing with facingMode:', facingMode);
+    setIsLoading(true);
+    setCameraError(null);
+
+    try {
+      // Arrêter le stream précédent s'il existe
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
       }
-    }, 100);
 
-    return () => clearInterval(interval);
-  }, []);
+      // Contraintes NATIVE pour qualité maximale
+      const constraints: MediaStreamConstraints = {
+        audio: false,
+        video: {
+          facingMode,
+          // Force le ratio portrait natif (9:16)
+          aspectRatio: { ideal: 9 / 16 },
+          // Demande la meilleure résolution possible
+          width: { ideal: 1920 },
+          height: { ideal: 1080 },
+        },
+      };
 
-  // Face tracking pour les stickers AR
-  const { isLoading: faceLoading, faceDetection, error: faceError } = useFaceTracking({
-    videoRef,
-    enabled: !capturedImage && selectedSticker !== 'none',
-    stickerType: selectedSticker,
-  });
+      console.log('[Camera] Requesting media with constraints:', constraints);
 
-  // Capture photo HAUTE FIDÉLITÉ à résolution native
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      streamRef.current = stream;
+
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+
+        // Attendre que la vidéo soit prête
+        await new Promise<void>((resolve) => {
+          if (videoRef.current) {
+            videoRef.current.onloadedmetadata = () => {
+              console.log(
+                '[Camera] Video ready:',
+                videoRef.current?.videoWidth,
+                'x',
+                videoRef.current?.videoHeight
+              );
+              resolve();
+            };
+          }
+        });
+
+        setIsLoading(false);
+        console.log('[Camera] Initialized successfully');
+      }
+    } catch (error) {
+      console.error('[Camera] Error:', error);
+      setIsLoading(false);
+
+      if (error instanceof Error) {
+        if (error.name === 'NotAllowedError') {
+          setCameraError('Accès caméra refusé. Veuillez autoriser l\'accès dans les paramètres.');
+        } else if (error.name === 'NotFoundError') {
+          setCameraError('Aucune caméra détectée sur cet appareil.');
+        } else {
+          setCameraError(`Erreur caméra: ${error.message}`);
+        }
+      } else {
+        setCameraError('Impossible d\'accéder à la caméra.');
+      }
+    }
+  }, [facingMode]);
+
+  // Initialiser au montage et quand facingMode change
+  useEffect(() => {
+    if (isOpen) {
+      initCamera();
+    }
+
+    return () => {
+      // Nettoyer le stream au démontage
+      if (streamRef.current) {
+        console.log('[Camera] Cleaning up stream');
+        streamRef.current.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
+      }
+    };
+  }, [isOpen, initCamera]);
+
+  // Capture photo NATIVE HD
   const capturePhoto = useCallback(async () => {
-    console.log('[Capture] Starting capture...');
-    console.log('[Capture] webcamRef.current:', webcamRef.current);
-    console.log('[Capture] videoRef.current:', videoRef.current);
-
-    if (!webcamRef.current || !videoRef.current) {
-      console.error('[Capture] Missing refs - webcam:', !!webcamRef.current, 'video:', !!videoRef.current);
-      toast.error('Erreur: Caméra non initialisée');
+    const video = videoRef.current;
+    if (!video || !streamRef.current) {
+      toast.error('Caméra non initialisée');
       return;
     }
 
-    const video = videoRef.current;
-    console.log('[Capture] Video element:', video);
+    console.log('[Capture] Starting HD capture...');
     console.log('[Capture] Video dimensions:', video.videoWidth, 'x', video.videoHeight);
 
-    // Créer canvas à la RÉSOLUTION NATIVE de la caméra (pas la taille d'affichage)
-    const nativeCanvas = document.createElement('canvas');
-    const nativeWidth = video.videoWidth || 1080;
-    const nativeHeight = video.videoHeight || 1920;
+    // Créer canvas à la résolution NATIVE HD
+    const canvas = document.createElement('canvas');
+    const width = video.videoWidth || 1920;
+    const height = video.videoHeight || 1080;
 
-    nativeCanvas.width = nativeWidth;
-    nativeCanvas.height = nativeHeight;
+    canvas.width = width;
+    canvas.height = height;
 
-    const ctx = nativeCanvas.getContext('2d');
+    const ctx = canvas.getContext('2d');
     if (!ctx) {
-      console.error('[Capture] Failed to get canvas context');
-      toast.error('Erreur: Canvas non disponible');
+      toast.error('Erreur canvas');
       return;
     }
 
-    console.log('[Capture] Native resolution:', nativeWidth, 'x', nativeHeight);
-
-    let finalImageSrc: string;
-
     try {
-      console.log('[Capture] Step 1: Drawing video to canvas...');
-      // 1. Dessiner la frame vidéo à résolution native
-      ctx.drawImage(video, 0, 0, nativeWidth, nativeHeight);
+      // 1. Capturer la frame vidéo
+      ctx.drawImage(video, 0, 0, width, height);
 
-      console.log('[Capture] Step 2: Applying "Night Mode" enhancement...');
-      // 2. "NIGHT MODE" - Formule optimisée pour restaurants sombres
-      // Utilise les filtres CSS Canvas (bien plus rapide que pixel-by-pixel)
+      // 2. Appliquer "Night Mode" (amélioration automatique)
       const tempCanvas = document.createElement('canvas');
-      tempCanvas.width = nativeWidth;
-      tempCanvas.height = nativeHeight;
+      tempCanvas.width = width;
+      tempCanvas.height = height;
       const tempCtx = tempCanvas.getContext('2d')!;
 
-      // Appliquer la formule magique Night Mode
       tempCtx.filter = 'brightness(135%) contrast(115%) saturate(120%)';
-      tempCtx.drawImage(nativeCanvas, 0, 0);
+      tempCtx.drawImage(canvas, 0, 0);
 
-      // Réappliquer sur le canvas principal
-      ctx.clearRect(0, 0, nativeWidth, nativeHeight);
+      ctx.clearRect(0, 0, width, height);
       ctx.drawImage(tempCanvas, 0, 0);
 
-      console.log('[Capture] Night Mode applied successfully');
+      console.log('[Capture] Night Mode applied');
 
-      console.log('[Capture] Step 3: Applying CSS filters...');
-      // 3. Appliquer le filtre CSS si sélectionné
+      // 3. Appliquer filtre CSS si sélectionné
       const filter = CSS_FILTERS.find((f) => f.id === selectedFilter);
       if (filter && filter.css !== 'none') {
-        ctx.filter = filter.css;
-        ctx.drawImage(nativeCanvas, 0, 0);
-        ctx.filter = 'none';
+        const filterCanvas = document.createElement('canvas');
+        filterCanvas.width = width;
+        filterCanvas.height = height;
+        const filterCtx = filterCanvas.getContext('2d')!;
+
+        filterCtx.filter = filter.css;
+        filterCtx.drawImage(canvas, 0, 0);
+
+        ctx.clearRect(0, 0, width, height);
+        ctx.drawImage(filterCanvas, 0, 0);
+
+        console.log('[Capture] CSS filter applied:', filter.id);
       }
 
-      console.log('[Capture] Step 4: Adding AR stickers...');
-      // 4. Superposer les stickers AR si actifs
-      if (selectedSticker !== 'none' && arCanvasRef.current) {
-        const arCanvas = arCanvasRef.current;
-        console.log('[Capture] AR Canvas dimensions:', arCanvas.width, 'x', arCanvas.height);
-        if (arCanvas.width > 0 && arCanvas.height > 0) {
-          // Redimensionner l'overlay AR à la résolution native
-          ctx.drawImage(arCanvas, 0, 0, nativeWidth, nativeHeight);
-        }
+      // 4. Export HD
+      const imageDataUrl = canvas.toDataURL('image/jpeg', 0.95);
+      console.log('[Capture] Captured image size:', imageDataUrl.length, 'bytes');
+
+      setCapturedImage(imageDataUrl);
+
+      // Flash effet
+      const flash = document.createElement('div');
+      flash.style.cssText = `
+        position: fixed;
+        inset: 0;
+        background: white;
+        z-index: 9999;
+        animation: flash 0.3s ease-out;
+      `;
+      document.body.appendChild(flash);
+      setTimeout(() => document.body.removeChild(flash), 300);
+
+      // Générer image avec template
+      setIsGenerating(true);
+      try {
+        const result = await generateSocialImage({
+          webcamImageSrc: imageDataUrl,
+          templateType: selectedTemplate,
+          restaurantName,
+          restaurantLogo,
+          menuUrl,
+          primaryColor,
+        });
+        setGeneratedImage(result);
+      } catch (error) {
+        console.error('[Capture] Template generation error:', error);
+        toast.error('Erreur génération template');
+      } finally {
+        setIsGenerating(false);
       }
-
-      console.log('[Capture] Step 5: Exporting to data URL...');
-      // 5. Export HAUTE QUALITÉ (qualité 0.95 - proche lossless)
-      finalImageSrc = nativeCanvas.toDataURL('image/jpeg', 0.95);
-      console.log('[Capture] Data URL length:', finalImageSrc.length);
-      setCapturedImage(finalImageSrc);
-      console.log('[Capture] Image captured successfully');
     } catch (error) {
-      console.error('[Capture] Error during capture:', error);
-      console.error('[Capture] Error stack:', error instanceof Error ? error.stack : 'No stack');
-      toast.error(`Erreur lors de la capture: ${error instanceof Error ? error.message : 'Unknown'}`);
-      return;
+      console.error('[Capture] Error:', error);
+      toast.error('Erreur lors de la capture');
     }
+  }, [selectedTemplate, selectedFilter, restaurantName, restaurantLogo, menuUrl, primaryColor]);
 
-    // Flash blanc
-    const flash = document.createElement('div');
-    flash.style.position = 'fixed';
-    flash.style.inset = '0';
-    flash.style.backgroundColor = 'white';
-    flash.style.zIndex = '9999';
-    flash.style.animation = 'flash 0.3s ease-out';
-    document.body.appendChild(flash);
-
-    setTimeout(() => {
-      document.body.removeChild(flash);
-    }, 300);
-
-    // Générer l'image avec le template
-    setIsGenerating(true);
-    try {
-      const result = await generateSocialImage({
-        webcamImageSrc: finalImageSrc,
-        templateType: selectedTemplate,
-        restaurantName,
-        restaurantLogo,
-        menuUrl,
-        primaryColor,
-      });
-      setGeneratedImage(result);
-    } catch (error) {
-      console.error('Image generation error:', error);
-      toast.error('Erreur lors de la génération');
-    } finally {
-      setIsGenerating(false);
-    }
-  }, [selectedTemplate, selectedSticker, selectedFilter, restaurantName, restaurantLogo, menuUrl, primaryColor]);
-
-  // Retour à la caméra
+  // Retour caméra
   const resetCamera = () => {
     setCapturedImage(null);
     setGeneratedImage(null);
@@ -251,33 +277,31 @@ export function SocialCamera({
         if (shared) {
           toast.success('Image partagée ! 🎉');
         } else {
-          toast.info('Image téléchargée (Partage non supporté)');
+          toast.info('Image téléchargée');
         }
       } catch (error) {
-        toast.error('Erreur lors du partage');
+        toast.error('Erreur partage');
       }
     }
   };
 
-  // Close et reset
+  // Close
   const handleClose = () => {
     resetCamera();
     onClose();
   };
 
-  // CSS pour le flash
-  const flashKeyframes = `
-    @keyframes flash {
-      0% { opacity: 1; }
-      100% { opacity: 0; }
-    }
-  `;
-
   if (!isOpen) return null;
 
   return (
     <AnimatePresence>
-      <style>{flashKeyframes}</style>
+      <style>{`
+        @keyframes flash {
+          0% { opacity: 1; }
+          100% { opacity: 0; }
+        }
+      `}</style>
+
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -288,201 +312,143 @@ export function SocialCamera({
         <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between p-4 bg-gradient-to-b from-black/80 to-transparent">
           <button
             onClick={handleClose}
-            className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center hover:bg-white/30 transition-colors"
+            className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center hover:bg-white/30"
           >
             <X className="w-6 h-6 text-white" />
           </button>
 
           <h2 className="text-white font-bold text-lg">Social Studio</h2>
 
-          <button
-            onClick={toggleCamera}
-            className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center hover:bg-white/30 transition-colors"
-          >
-            <RotateCw className="w-5 h-5 text-white" />
-          </button>
+          {!capturedImage && (
+            <button
+              onClick={toggleCamera}
+              className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center hover:bg-white/30"
+            >
+              <RotateCw className="w-5 h-5 text-white" />
+            </button>
+          )}
         </div>
 
         {/* Main Content */}
         <div className="relative h-full flex flex-col">
-          {/* Webcam ou Image capturée */}
           {!capturedImage ? (
             <>
-              {/* Webcam avec ref pour AR - Configuration Native Anti-Zoom */}
-              <div className="relative w-full h-full bg-black overflow-hidden">
-                <Webcam
-                  ref={webcamRef}
-                  audio={false}
-                  screenshotFormat="image/jpeg"
-                  screenshotQuality={1.0}
-                  videoConstraints={{
-                    facingMode,
-                    aspectRatio: 9 / 16, // Force portrait natif
-                    width: { ideal: 1080, min: 720 },
-                    height: { ideal: 1920, min: 1280 },
-                  }}
+              {/* Native Video Stream - FULL BLEED */}
+              <div className="fixed inset-0 z-0 bg-black overflow-hidden">
+                <video
+                  ref={videoRef}
+                  autoPlay
+                  playsInline
+                  muted
                   style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
                     width: '100%',
                     height: '100%',
-                    objectFit: 'contain', // CRUCIAL: évite le zoom excessif
+                    objectFit: 'cover',
                     filter: CSS_FILTERS.find((f) => f.id === selectedFilter)?.css || 'none',
                   }}
-                  onUserMedia={(stream) => {
-                    if (webcamRef.current) {
-                      const video = (webcamRef.current as any).video;
-                      if (video) {
-                        videoRef.current = video;
-                        console.log('[SocialCamera] Video initialized with resolution:', video.videoWidth, 'x', video.videoHeight);
-                      } else {
-                        console.error('[SocialCamera] Could not get video element from webcam');
-                      }
-                    }
-                  }}
                 />
 
-                {/* AR Overlay Canvas */}
-                {selectedSticker !== 'none' && videoRef.current && (
-                  <ARStickerOverlay
-                    videoRef={videoRef}
-                    faceDetection={faceDetection}
-                    stickerType={selectedSticker}
-                    className="absolute inset-0 w-full h-full"
-                  />
+                {/* Erreur caméra */}
+                {cameraError && (
+                  <div className="absolute inset-0 flex items-center justify-center p-8">
+                    <div className="bg-red-500/20 backdrop-blur-md text-white p-6 rounded-2xl text-center">
+                      <p className="font-semibold mb-2">⚠️ Erreur Caméra</p>
+                      <p className="text-sm opacity-90">{cameraError}</p>
+                    </div>
+                  </div>
                 )}
 
-                {/* Canvas ref pour la capture */}
-                <canvas
-                  ref={arCanvasRef}
-                  className="absolute inset-0 w-full h-full opacity-0 pointer-events-none"
-                />
-
-                {/* Indicateur de chargement AR */}
-                {faceLoading && selectedSticker !== 'none' && (
-                  <div className="absolute top-20 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full bg-black/60 backdrop-blur-md text-white text-sm flex items-center gap-2">
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Chargement des filtres magiques...
+                {/* Loading */}
+                {isLoading && !cameraError && (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="text-white text-center">
+                      <div className="animate-spin rounded-full h-12 w-12 border-4 border-white/30 border-t-white mx-auto mb-4" />
+                      <p>Initialisation caméra...</p>
+                    </div>
                   </div>
                 )}
               </div>
 
-              {/* Stickers AR */}
-              <div className="absolute bottom-56 left-0 right-0 px-4">
-                <button
-                  onClick={() => setShowStickers(!showStickers)}
-                  className="mb-3 px-4 py-2 rounded-full bg-purple-500/80 backdrop-blur-md text-white font-medium flex items-center gap-2 mx-auto hover:bg-purple-600/80 transition-colors"
-                >
-                  <Wand2 className="w-4 h-4" />
-                  Stickers AR
-                </button>
-
-                <AnimatePresence>
-                  {showStickers && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 20 }}
-                      className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide"
-                    >
-                      {[
-                        { id: 'none' as StickerType, label: 'Aucun', emoji: '🚫' },
-                        { id: 'chef' as StickerType, label: 'Chef', emoji: '👨‍🍳' },
-                        { id: 'gourmand' as StickerType, label: 'Gourmand', emoji: '😋' },
-                      ].map((sticker) => (
-                        <button
-                          key={sticker.id}
-                          onClick={() => setSelectedSticker(sticker.id)}
-                          className={`px-4 py-2 rounded-full font-medium whitespace-nowrap transition-colors ${
-                            selectedSticker === sticker.id
-                              ? 'bg-purple-500 text-white'
-                              : 'bg-white/20 backdrop-blur-md text-white hover:bg-white/30'
-                          }`}
-                        >
-                          {sticker.emoji} {sticker.label}
-                        </button>
-                      ))}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-
               {/* Filtres CSS */}
-              <div className="absolute bottom-44 left-0 right-0 px-4">
-                <button
-                  onClick={() => setShowFilters(!showFilters)}
-                  className="mb-3 px-4 py-2 rounded-full bg-white/20 backdrop-blur-md text-white font-medium flex items-center gap-2 mx-auto hover:bg-white/30 transition-colors"
-                >
-                  <Sparkles className="w-4 h-4" />
-                  Filtres CSS
-                </button>
+              {!isLoading && !cameraError && (
+                <div className="absolute bottom-44 left-0 right-0 px-4 z-10">
+                  <button
+                    onClick={() => setShowFilters(!showFilters)}
+                    className="mb-3 px-4 py-2 rounded-full bg-white/20 backdrop-blur-md text-white font-medium flex items-center gap-2 mx-auto"
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    Filtres
+                  </button>
 
-                <AnimatePresence>
-                  {showFilters && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 20 }}
-                      className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide"
-                    >
-                      {CSS_FILTERS.map((filter) => (
-                        <button
-                          key={filter.id}
-                          onClick={() => setSelectedFilter(filter.id)}
-                          className={`px-4 py-2 rounded-full font-medium whitespace-nowrap transition-colors ${
-                            selectedFilter === filter.id
-                              ? 'bg-white text-black'
-                              : 'bg-white/20 backdrop-blur-md text-white hover:bg-white/30'
-                          }`}
-                        >
-                          {filter.label}
-                        </button>
-                      ))}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-
-              {/* Templates carousel */}
-              <div className="absolute bottom-32 left-0 right-0 px-4">
-                <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-                  {TEMPLATES.map((template) => (
-                    <button
-                      key={template.id}
-                      onClick={() => setSelectedTemplate(template.id)}
-                      className={`flex-shrink-0 px-5 py-3 rounded-2xl font-medium transition-all ${
-                        selectedTemplate === template.id
-                          ? 'bg-white text-black scale-105 shadow-lg'
-                          : 'bg-white/20 backdrop-blur-md text-white hover:bg-white/30'
-                      }`}
-                    >
-                      <div className="text-2xl mb-1">{template.emoji}</div>
-                      <div className="text-sm font-bold">{template.label}</div>
-                      <div className="text-xs opacity-80">{template.description}</div>
-                    </button>
-                  ))}
+                  <AnimatePresence>
+                    {showFilters && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 20 }}
+                        className="flex gap-2 overflow-x-auto pb-2"
+                      >
+                        {CSS_FILTERS.map((filter) => (
+                          <button
+                            key={filter.id}
+                            onClick={() => setSelectedFilter(filter.id)}
+                            className={`px-4 py-2 rounded-full font-medium whitespace-nowrap ${
+                              selectedFilter === filter.id
+                                ? 'bg-white text-black'
+                                : 'bg-white/20 backdrop-blur-md text-white'
+                            }`}
+                          >
+                            {filter.label}
+                          </button>
+                        ))}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
-              </div>
+              )}
 
-              {/* Capture button */}
-              <div className="absolute bottom-8 left-0 right-0 flex justify-center">
-                <button
-                  onClick={capturePhoto}
-                  className="w-20 h-20 rounded-full bg-white border-4 border-white/30 hover:scale-110 active:scale-95 transition-transform shadow-2xl"
-                >
-                  <Camera className="w-8 h-8 mx-auto text-black" />
-                </button>
-              </div>
+              {/* Templates */}
+              {!isLoading && !cameraError && (
+                <div className="absolute bottom-32 left-0 right-0 px-4 z-10">
+                  <div className="flex gap-3 overflow-x-auto pb-2">
+                    {TEMPLATES.map((template) => (
+                      <button
+                        key={template.id}
+                        onClick={() => setSelectedTemplate(template.id)}
+                        className={`flex-shrink-0 px-5 py-3 rounded-2xl font-medium ${
+                          selectedTemplate === template.id
+                            ? 'bg-white text-black scale-105'
+                            : 'bg-white/20 backdrop-blur-md text-white'
+                        }`}
+                      >
+                        <div className="text-2xl mb-1">{template.emoji}</div>
+                        <div className="text-sm font-bold">{template.label}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Bouton Capture */}
+              {!isLoading && !cameraError && (
+                <div className="absolute bottom-8 left-0 right-0 flex justify-center z-10">
+                  <button
+                    onClick={capturePhoto}
+                    className="w-20 h-20 rounded-full bg-white border-4 border-white/30 hover:scale-110 active:scale-95 transition-transform shadow-2xl"
+                  >
+                    <Camera className="w-8 h-8 mx-auto text-black" />
+                  </button>
+                </div>
+              )}
             </>
           ) : (
             <>
-              {/* Image générée ou en cours */}
+              {/* Image capturée/générée */}
               <div className="flex-1 flex items-center justify-center bg-black">
                 {isGenerating ? (
-                  <div className="text-center">
-                    <Loader2 className="w-12 h-12 text-white animate-spin mx-auto mb-4" />
-                    <p className="text-white font-medium">Création de votre chef-d&apos;œuvre...</p>
+                  <div className="text-center text-white">
+                    <div className="animate-spin rounded-full h-12 w-12 border-4 border-white/30 border-t-white mx-auto mb-4" />
+                    <p>Création de votre chef-d&apos;œuvre...</p>
                   </div>
                 ) : generatedImage ? (
                   <img
@@ -499,13 +465,13 @@ export function SocialCamera({
                   <div className="flex gap-3">
                     <button
                       onClick={resetCamera}
-                      className="flex-1 px-6 py-4 rounded-xl bg-white/20 backdrop-blur-md text-white font-semibold hover:bg-white/30 transition-colors"
+                      className="flex-1 px-6 py-4 rounded-xl bg-white/20 backdrop-blur-md text-white font-semibold"
                     >
                       Reprendre
                     </button>
                     <button
                       onClick={handleDownload}
-                      className="flex-1 px-6 py-4 rounded-xl font-semibold text-white flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95"
+                      className="flex-1 px-6 py-4 rounded-xl font-semibold text-white flex items-center justify-center gap-2"
                       style={{ backgroundColor: primaryColor || '#FF4500' }}
                     >
                       <Download className="w-5 h-5" />
@@ -513,7 +479,7 @@ export function SocialCamera({
                     </button>
                     <button
                       onClick={handleShare}
-                      className="flex-1 px-6 py-4 rounded-xl font-semibold text-white flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95"
+                      className="flex-1 px-6 py-4 rounded-xl font-semibold text-white flex items-center justify-center gap-2"
                       style={{ backgroundColor: primaryColor || '#FF4500' }}
                     >
                       <Share2 className="w-5 h-5" />
