@@ -59,7 +59,6 @@ export function SocialCamera({
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [showFilters, setShowFilters] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [debugLogs, setDebugLogs] = useState<string[]>([]);
@@ -391,75 +390,104 @@ export function SocialCamera({
                 )}
               </div>
 
-              {/* Filtres CSS */}
+              {/* Footer - Studio Controls (Instagram Style) */}
               {!isLoading && !cameraError && (
-                <div className="absolute bottom-44 left-0 right-0 px-4 z-10">
-                  <button
-                    onClick={() => setShowFilters(!showFilters)}
-                    className="mb-3 px-4 py-2 rounded-full bg-white/20 backdrop-blur-md text-white font-medium flex items-center gap-2 mx-auto"
-                  >
-                    <Sparkles className="w-4 h-4" />
-                    Filtres
-                  </button>
+                <div className="absolute bottom-0 left-0 right-0 z-10 pb-safe">
+                  {/* Gradient Background */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent pointer-events-none" />
 
-                  <AnimatePresence>
-                    {showFilters && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 20 }}
-                        className="flex gap-2 overflow-x-auto pb-2"
+                  {/* Content */}
+                  <div className="relative px-4 pb-8">
+                    {/* Carrousel de Sélection (Templates + Filtres) */}
+                    <div className="mb-8">
+                      {/* Scrollable Container with Snap */}
+                      <div
+                        className="flex gap-4 overflow-x-auto pb-4 px-4 -mx-4 snap-x snap-mandatory scrollbar-hide"
+                        style={{
+                          scrollbarWidth: 'none',
+                          msOverflowStyle: 'none',
+                          WebkitOverflowScrolling: 'touch',
+                        }}
                       >
-                        {CSS_FILTERS.map((filter) => (
+                        {/* Padding spacer gauche pour centrer le premier */}
+                        <div className="shrink-0 w-[calc(50vw-4rem)]" />
+
+                        {/* Templates */}
+                        {TEMPLATES.map((template) => (
                           <button
-                            key={filter.id}
-                            onClick={() => setSelectedFilter(filter.id)}
-                            className={`px-4 py-2 rounded-full font-medium whitespace-nowrap ${
-                              selectedFilter === filter.id
-                                ? 'bg-white text-black'
-                                : 'bg-white/20 backdrop-blur-md text-white'
-                            }`}
+                            key={template.id}
+                            onClick={() => setSelectedTemplate(template.id)}
+                            className={`
+                              shrink-0 snap-center
+                              flex flex-col items-center justify-center gap-2
+                              w-20 h-20 rounded-full
+                              transition-all duration-300 ease-out
+                              ${
+                                selectedTemplate === template.id
+                                  ? 'bg-white scale-125 ring-4 ring-primary/50 shadow-2xl'
+                                  : 'bg-white/20 backdrop-blur-md scale-100 hover:scale-110'
+                              }
+                            `}
                           >
-                            {filter.label}
+                            <span className="text-3xl">{template.emoji}</span>
+                            {selectedTemplate === template.id && (
+                              <span className="text-[10px] font-bold text-black -mt-1">
+                                {template.label}
+                              </span>
+                            )}
                           </button>
                         ))}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              )}
 
-              {/* Templates */}
-              {!isLoading && !cameraError && (
-                <div className="absolute bottom-32 left-0 right-0 px-4 z-10">
-                  <div className="flex gap-3 overflow-x-auto pb-2">
-                    {TEMPLATES.map((template) => (
-                      <button
-                        key={template.id}
-                        onClick={() => setSelectedTemplate(template.id)}
-                        className={`flex-shrink-0 px-5 py-3 rounded-2xl font-medium ${
-                          selectedTemplate === template.id
-                            ? 'bg-white text-black scale-105'
-                            : 'bg-white/20 backdrop-blur-md text-white'
-                        }`}
+                        {/* Filtres CSS */}
+                        {CSS_FILTERS.filter((f) => f.id !== 'none').map((filter) => (
+                          <button
+                            key={`filter-${filter.id}`}
+                            onClick={() => setSelectedFilter(filter.id)}
+                            className={`
+                              shrink-0 snap-center
+                              flex flex-col items-center justify-center gap-2
+                              w-20 h-20 rounded-full
+                              transition-all duration-300 ease-out
+                              ${
+                                selectedFilter === filter.id
+                                  ? 'bg-white scale-125 ring-4 ring-purple-500/50 shadow-2xl'
+                                  : 'bg-white/20 backdrop-blur-md scale-100 hover:scale-110'
+                              }
+                            `}
+                          >
+                            <Sparkles className={`w-6 h-6 ${selectedFilter === filter.id ? 'text-black' : 'text-white'}`} />
+                            {selectedFilter === filter.id && (
+                              <span className="text-[10px] font-bold text-black -mt-1">
+                                {filter.label}
+                              </span>
+                            )}
+                          </button>
+                        ))}
+
+                        {/* Padding spacer droit pour centrer le dernier */}
+                        <div className="shrink-0 w-[calc(50vw-4rem)]" />
+                      </div>
+                    </div>
+
+                    {/* Shutter Button */}
+                    <div className="flex justify-center">
+                      <motion.button
+                        onClick={capturePhoto}
+                        whileTap={{ scale: 0.85 }}
+                        className="relative group"
                       >
-                        <div className="text-2xl mb-1">{template.emoji}</div>
-                        <div className="text-sm font-bold">{template.label}</div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
+                        {/* Outer Ring */}
+                        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/40 to-white/10 blur-lg group-hover:blur-xl transition-all" />
 
-              {/* Bouton Capture */}
-              {!isLoading && !cameraError && (
-                <div className="absolute bottom-8 left-0 right-0 flex justify-center z-10">
-                  <button
-                    onClick={capturePhoto}
-                    className="w-20 h-20 rounded-full bg-white border-4 border-white/30 hover:scale-110 active:scale-95 transition-transform shadow-2xl"
-                  >
-                    <Camera className="w-8 h-8 mx-auto text-black" />
-                  </button>
+                        {/* Button */}
+                        <div className="relative w-24 h-24 rounded-full bg-white shadow-2xl flex items-center justify-center border-4 border-white/30 group-hover:border-white/50 transition-all">
+                          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-red-500 to-pink-600 flex items-center justify-center">
+                            <Camera className="w-10 h-10 text-white" />
+                          </div>
+                        </div>
+                      </motion.button>
+                    </div>
+                  </div>
                 </div>
               )}
             </>
