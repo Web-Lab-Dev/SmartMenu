@@ -62,6 +62,14 @@ export function SocialCamera({
   const [showFilters, setShowFilters] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [debugLogs, setDebugLogs] = useState<string[]>([]);
+  const [showDebugPanel, setShowDebugPanel] = useState(false);
+
+  // Helper pour ajouter des logs visibles dans l'UI
+  const addDebugLog = (message: string) => {
+    setDebugLogs((prev) => [...prev.slice(-20), `[${new Date().toLocaleTimeString()}] ${message}`]);
+    console.log(message);
+  };
 
   // Initialiser la caméra avec getUserMedia (NATIVE)
   const initCamera = useCallback(async () => {
@@ -139,6 +147,14 @@ export function SocialCamera({
   // Initialiser au montage et quand facingMode change
   useEffect(() => {
     if (isOpen) {
+      console.log('╔═══════════════════════════════════════════════════╗');
+      console.log('║  SOCIAL CAMERA OPENED                            ║');
+      console.log('╚═══════════════════════════════════════════════════╝');
+      console.log('[SocialCamera] Component props:', {
+        restaurantName,
+        menuUrl,
+        selectedTemplate,
+      });
       initCamera();
     }
 
@@ -154,8 +170,14 @@ export function SocialCamera({
 
   // Capture photo NATIVE HD
   const capturePhoto = useCallback(async () => {
+    addDebugLog('═══ CAPTURE DÉMARRÉ ═══');
+    addDebugLog(`Template: ${selectedTemplate}`);
+    addDebugLog(`Restaurant: ${restaurantName}`);
+    addDebugLog(`Menu URL: ${menuUrl}`);
+
     const video = videoRef.current;
     if (!video || !streamRef.current) {
+      console.error('[Capture] ABORT - Missing refs:', { video: !!video, stream: !!streamRef.current });
       toast.error('Caméra non initialisée');
       return;
     }
@@ -240,6 +262,11 @@ export function SocialCamera({
       setTimeout(() => document.body.removeChild(flash), 300);
 
       // Générer image avec template
+      addDebugLog('═══ GÉNÉRATION IMAGE ═══');
+      addDebugLog(`Appel generateSocialImage()`);
+      addDebugLog(`Template: ${selectedTemplate}`);
+      addDebugLog(`Restaurant: ${restaurantName}`);
+
       setIsGenerating(true);
       try {
         const result = await generateSocialImage({
@@ -250,18 +277,22 @@ export function SocialCamera({
           menuUrl,
           primaryColor,
         });
+        addDebugLog('✅ Image générée avec succès');
+        addDebugLog(`Taille: ${(result.length / 1024).toFixed(0)}KB`);
         setGeneratedImage(result);
       } catch (error) {
+        addDebugLog(`❌ ERREUR: ${error instanceof Error ? error.message : 'Unknown'}`);
         console.error('[Capture] Template generation error:', error);
         toast.error('Erreur génération template');
       } finally {
         setIsGenerating(false);
       }
     } catch (error) {
+      addDebugLog(`❌ ERREUR CAPTURE: ${error instanceof Error ? error.message : 'Unknown'}`);
       console.error('[Capture] Error:', error);
       toast.error('Erreur lors de la capture');
     }
-  }, [selectedTemplate, selectedFilter, facingMode, restaurantName, restaurantLogo, menuUrl, primaryColor]);
+  }, [selectedTemplate, selectedFilter, facingMode, restaurantName, restaurantLogo, menuUrl, primaryColor, addDebugLog]);
 
   // Retour caméra
   const resetCamera = () => {
@@ -504,6 +535,37 @@ export function SocialCamera({
                 </div>
               )}
             </>
+          )}
+
+          {/* Panneau Debug Mobile */}
+          <button
+            onClick={() => setShowDebugPanel(!showDebugPanel)}
+            className="absolute top-20 right-4 w-12 h-12 bg-red-500 text-white rounded-full shadow-lg flex items-center justify-center font-bold z-50"
+          >
+            🐛
+          </button>
+
+          {showDebugPanel && (
+            <div className="absolute top-20 left-4 right-4 bottom-20 bg-black/95 text-white p-4 rounded-xl overflow-auto z-40 font-mono text-xs">
+              <div className="flex justify-between items-center mb-2 sticky top-0 bg-black/95 pb-2">
+                <h3 className="font-bold">Debug Logs</h3>
+                <button
+                  onClick={() => setDebugLogs([])}
+                  className="text-red-400 text-xs"
+                >
+                  Effacer
+                </button>
+              </div>
+              {debugLogs.length === 0 ? (
+                <p className="text-gray-400">Aucun log pour le moment...</p>
+              ) : (
+                debugLogs.map((log, i) => (
+                  <div key={i} className="mb-1 pb-1 border-b border-gray-800">
+                    {log}
+                  </div>
+                ))
+              )}
+            </div>
           )}
         </div>
       </motion.div>
