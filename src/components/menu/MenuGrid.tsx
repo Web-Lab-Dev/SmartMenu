@@ -140,10 +140,10 @@ export function MenuGrid({ products, activeCategory, searchQuery = '', loading }
         className="flex flex-col items-center justify-center py-16 text-center"
       >
         <span className="text-6xl mb-4">{searchQuery ? '🔍' : '🍽️'}</span>
-        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+        <h3 className="text-xl font-bold text-white mb-2">
           {searchQuery ? 'Aucun résultat' : 'Aucun produit disponible'}
         </h3>
-        <p className="text-gray-500 dark:text-gray-400">
+        <p className="text-gray-400">
           {searchQuery
             ? `Aucun plat ne correspond à "${searchQuery}"`
             : activeCategory
@@ -220,7 +220,7 @@ export function MenuGrid({ products, activeCategory, searchQuery = '', loading }
 
         {/* Category Count Badge */}
         <div className="flex justify-center pt-4">
-          <div className="px-4 py-2 bg-background-surface border border-white/10 rounded-full text-sm text-text-secondary">
+          <div className="px-4 py-2 border rounded-full text-sm text-gray-400" style={{ backgroundColor: '#1E1E1E', borderColor: 'rgba(255, 255, 255, 0.1)' }}>
             {filteredProducts.length} produit{filteredProducts.length > 1 ? 's' : ''}
           </div>
         </div>

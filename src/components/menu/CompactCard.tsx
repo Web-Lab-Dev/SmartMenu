@@ -41,16 +41,19 @@ const cardTransition = { duration: 0.2 };
 function CompactCardComponent({ product, onClick, onAddToCart }: CompactCardProps) {
   return (
     <motion.div
-      className="relative bg-background-surface rounded-xl overflow-hidden shadow-sm border border-white/5 hover:border-primary/30 cursor-pointer group transition-all duration-300"
+      className="relative rounded-xl overflow-hidden shadow-sm border cursor-pointer group transition-all duration-300"
+      style={{ backgroundColor: '#1E1E1E', borderColor: 'rgba(255, 255, 255, 0.05)' }}
       onClick={onClick}
       whileTap={cardVariants.tap}
       initial={cardVariants.initial}
       animate={cardVariants.animate}
       transition={cardTransition}
+      onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'rgba(var(--brand-rgb), 0.3)')}
+      onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.05)')}
     >
       <div className="flex items-center gap-3 p-3">
         {/* Square Image */}
-        <div className="relative w-20 h-20 rounded-lg overflow-hidden bg-background shrink-0">
+        <div className="relative w-20 h-20 rounded-lg overflow-hidden shrink-0" style={{ backgroundColor: '#121212' }}>
           {(product.images?.[0] || product.image) ? (
             <Image
               src={product.images?.[0] || product.image || ''}
@@ -68,12 +71,12 @@ function CompactCardComponent({ product, onClick, onAddToCart }: CompactCardProp
 
         {/* Content */}
         <div className="flex-1 min-w-0">
-          <h4 className="font-display font-semibold text-base text-text-primary uppercase tracking-wide mb-1 line-clamp-1">
+          <h4 className="font-display font-semibold text-base text-white uppercase tracking-wide mb-1 line-clamp-1">
             {product.name}
           </h4>
 
           {product.description && (
-            <p className="text-xs text-text-secondary line-clamp-1 mb-2">
+            <p className="text-xs text-gray-400 line-clamp-1 mb-2">
               {product.description}
             </p>
           )}
@@ -92,7 +95,7 @@ function CompactCardComponent({ product, onClick, onAddToCart }: CompactCardProp
           className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 shadow-md"
           style={{
             backgroundColor: 'var(--brand-color)',
-            color: 'white',
+            color: '#000000',
           }}
           whileTap={buttonVariants.tap}
           whileHover={buttonVariants.hover}
@@ -113,20 +116,20 @@ export const CompactCard = memo(CompactCardComponent);
  */
 export function CompactCardSkeleton() {
   return (
-    <div className="relative bg-background-surface rounded-xl overflow-hidden shadow-sm border border-white/5 animate-pulse">
+    <div className="relative rounded-xl overflow-hidden shadow-sm border animate-pulse" style={{ backgroundColor: '#1E1E1E', borderColor: 'rgba(255, 255, 255, 0.05)' }}>
       <div className="flex items-center gap-3 p-3">
         {/* Image Skeleton */}
-        <div className="w-20 h-20 rounded-lg bg-background shrink-0" />
+        <div className="w-20 h-20 rounded-lg shrink-0" style={{ backgroundColor: '#121212' }} />
 
         {/* Content Skeleton */}
         <div className="flex-1 space-y-2">
-          <div className="h-5 bg-background rounded w-2/3" />
-          <div className="h-3 bg-background rounded w-full" />
-          <div className="h-4 bg-background rounded w-1/3" />
+          <div className="h-5 rounded w-2/3" style={{ backgroundColor: '#121212' }} />
+          <div className="h-3 rounded w-full" style={{ backgroundColor: '#121212' }} />
+          <div className="h-4 rounded w-1/3" style={{ backgroundColor: '#121212' }} />
         </div>
 
         {/* Button Skeleton */}
-        <div className="w-10 h-10 rounded-full bg-background shrink-0" />
+        <div className="w-10 h-10 rounded-full shrink-0" style={{ backgroundColor: '#121212' }} />
       </div>
     </div>
   );
