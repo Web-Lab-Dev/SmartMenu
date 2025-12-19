@@ -75,13 +75,17 @@ export function SocialCamera({
         streamRef.current.getTracks().forEach((track) => track.stop());
       }
 
+      // Calculer le ratio exact de l'écran pour éviter le zoom
+      const screenAspectRatio = window.outerHeight / window.outerWidth;
+      console.log('[Camera] Screen aspect ratio:', screenAspectRatio);
+
       // Contraintes NATIVE pour qualité maximale
       const constraints: MediaStreamConstraints = {
         audio: false,
         video: {
           facingMode,
-          // Force le ratio portrait natif (9:16)
-          aspectRatio: { ideal: 9 / 16 },
+          // Utilise le ratio exact de l'écran
+          aspectRatio: { ideal: screenAspectRatio },
           // Demande la meilleure résolution possible
           width: { ideal: 1920 },
           height: { ideal: 1080 },
@@ -174,8 +178,17 @@ export function SocialCamera({
     }
 
     try {
-      // 1. Capturer la frame vidéo
-      ctx.drawImage(video, 0, 0, width, height);
+      // 1. Capturer la frame vidéo avec effet miroir pour selfie
+      if (facingMode === 'user') {
+        // Mode miroir pour selfie (correspond à la preview)
+        ctx.save();
+        ctx.scale(-1, 1);
+        ctx.drawImage(video, -width, 0, width, height);
+        ctx.restore();
+      } else {
+        // Mode normal pour caméra arrière
+        ctx.drawImage(video, 0, 0, width, height);
+      }
 
       // 2. Appliquer "Night Mode" (amélioration automatique)
       const tempCanvas = document.createElement('canvas');
@@ -248,7 +261,7 @@ export function SocialCamera({
       console.error('[Capture] Error:', error);
       toast.error('Erreur lors de la capture');
     }
-  }, [selectedTemplate, selectedFilter, restaurantName, restaurantLogo, menuUrl, primaryColor]);
+  }, [selectedTemplate, selectedFilter, facingMode, restaurantName, restaurantLogo, menuUrl, primaryColor]);
 
   // Retour caméra
   const resetCamera = () => {
@@ -345,6 +358,8 @@ export function SocialCamera({
                     height: '100%',
                     objectFit: 'cover',
                     filter: CSS_FILTERS.find((f) => f.id === selectedFilter)?.css || 'none',
+                    // Effet miroir pour caméra frontale (selfie)
+                    transform: facingMode === 'user' ? 'scaleX(-1)' : 'none',
                   }}
                 />
 
