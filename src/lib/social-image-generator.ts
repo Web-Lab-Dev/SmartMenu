@@ -56,16 +56,12 @@ function loadImage(src: string): Promise<HTMLImageElement> {
  */
 async function loadSVGTemplate(templatePath: string): Promise<string> {
   try {
-    console.log('[SVG] Loading template from:', templatePath);
     const response = await fetch(templatePath);
     if (!response.ok) {
       console.error('[SVG] Failed to load template, status:', response.status);
       throw new Error(`Failed to load template: ${templatePath}`);
     }
-    const svgText = await response.text();
-    console.log('[SVG] Template loaded successfully, length:', svgText.length);
-    console.log('[SVG] First 200 chars:', svgText.substring(0, 200));
-    return svgText;
+    return await response.text();
   } catch (error) {
     console.error('[SVG] Template load error:', error);
     throw error;

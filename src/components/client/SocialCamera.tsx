@@ -65,15 +65,17 @@ export function SocialCamera({
   const [debugLogs, setDebugLogs] = useState<string[]>([]);
   const [showDebugPanel, setShowDebugPanel] = useState(false);
 
+  // Debug mode activé seulement en développement
+  const isDebugMode = process.env.NODE_ENV === 'development';
+
   // Helper pour ajouter des logs visibles dans l'UI
-  const addDebugLog = (message: string) => {
+  const addDebugLog = useCallback((message: string) => {
+    if (!isDebugMode) return;
     setDebugLogs((prev) => [...prev.slice(-20), `[${new Date().toLocaleTimeString()}] ${message}`]);
-    console.log(message);
-  };
+  }, [isDebugMode]);
 
   // Initialiser la caméra avec getUserMedia (NATIVE)
   const initCamera = useCallback(async () => {
-    console.log('[Camera] Initializing with facingMode:', facingMode);
     setIsLoading(true);
     setCameraError(null);
 
@@ -85,7 +87,6 @@ export function SocialCamera({
 
       // Calculer le ratio exact de l'écran pour éviter le zoom
       const screenAspectRatio = window.outerHeight / window.outerWidth;
-      console.log('[Camera] Screen aspect ratio:', screenAspectRatio);
 
       // Contraintes NATIVE pour qualité maximale
       const constraints: MediaStreamConstraints = {
@@ -100,8 +101,6 @@ export function SocialCamera({
         },
       };
 
-      console.log('[Camera] Requesting media with constraints:', constraints);
-
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
       streamRef.current = stream;
 
@@ -111,20 +110,11 @@ export function SocialCamera({
         // Attendre que la vidéo soit prête
         await new Promise<void>((resolve) => {
           if (videoRef.current) {
-            videoRef.current.onloadedmetadata = () => {
-              console.log(
-                '[Camera] Video ready:',
-                videoRef.current?.videoWidth,
-                'x',
-                videoRef.current?.videoHeight
-              );
-              resolve();
-            };
+            videoRef.current.onloadedmetadata = () => resolve();
           }
         });
 
         setIsLoading(false);
-        console.log('[Camera] Initialized successfully');
       }
     } catch (error) {
       console.error('[Camera] Error:', error);
@@ -147,21 +137,12 @@ export function SocialCamera({
   // Initialiser au montage et quand facingMode change
   useEffect(() => {
     if (isOpen) {
-      console.log('╔═══════════════════════════════════════════════════╗');
-      console.log('║  SOCIAL CAMERA OPENED                            ║');
-      console.log('╚═══════════════════════════════════════════════════╝');
-      console.log('[SocialCamera] Component props:', {
-        restaurantName,
-        menuUrl,
-        selectedTemplate,
-      });
       initCamera();
     }
 
     return () => {
       // Nettoyer le stream au démontage
       if (streamRef.current) {
-        console.log('[Camera] Cleaning up stream');
         streamRef.current.getTracks().forEach((track) => track.stop());
         streamRef.current = null;
       }
@@ -177,13 +158,10 @@ export function SocialCamera({
 
     const video = videoRef.current;
     if (!video || !streamRef.current) {
-      console.error('[Capture] ABORT - Missing refs:', { video: !!video, stream: !!streamRef.current });
+      addDebugLog('❌ Caméra non initialisée');
       toast.error('Caméra non initialisée');
       return;
     }
-
-    console.log('[Capture] Starting HD capture...');
-    console.log('[Capture] Video dimensions:', video.videoWidth, 'x', video.videoHeight);
 
     // Créer canvas à la résolution NATIVE HD
     const canvas = document.createElement('canvas');
@@ -224,8 +202,6 @@ export function SocialCamera({
       ctx.clearRect(0, 0, width, height);
       ctx.drawImage(tempCanvas, 0, 0);
 
-      console.log('[Capture] Night Mode applied');
-
       // 3. Appliquer filtre CSS si sélectionné
       const filter = CSS_FILTERS.find((f) => f.id === selectedFilter);
       if (filter && filter.css !== 'none') {
@@ -239,13 +215,10 @@ export function SocialCamera({
 
         ctx.clearRect(0, 0, width, height);
         ctx.drawImage(filterCanvas, 0, 0);
-
-        console.log('[Capture] CSS filter applied:', filter.id);
       }
 
       // 4. Export HD
       const imageDataUrl = canvas.toDataURL('image/jpeg', 0.95);
-      console.log('[Capture] Captured image size:', imageDataUrl.length, 'bytes');
 
       setCapturedImage(imageDataUrl);
 
@@ -282,14 +255,16 @@ export function SocialCamera({
         addDebugLog(`Taille: ${(result.length / 1024).toFixed(0)}KB`);
         setGeneratedImage(result);
       } catch (error) {
-        addDebugLog(`❌ ERREUR: ${error instanceof Error ? error.message : 'Unknown'}`);
+        const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+        addDebugLog(`❌ ERREUR: ${errorMsg}`);
         console.error('[Capture] Template generation error:', error);
         toast.error('Erreur génération template');
       } finally {
         setIsGenerating(false);
       }
     } catch (error) {
-      addDebugLog(`❌ ERREUR CAPTURE: ${error instanceof Error ? error.message : 'Unknown'}`);
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      addDebugLog(`❌ ERREUR CAPTURE: ${errorMsg}`);
       console.error('[Capture] Error:', error);
       toast.error('Erreur lors de la capture');
     }
@@ -538,35 +513,39 @@ export function SocialCamera({
             </>
           )}
 
-          {/* Panneau Debug Mobile */}
-          <button
-            onClick={() => setShowDebugPanel(!showDebugPanel)}
-            className="absolute top-20 right-4 w-12 h-12 bg-red-500 text-white rounded-full shadow-lg flex items-center justify-center font-bold z-50"
-          >
-            🐛
-          </button>
+          {/* Panneau Debug Mobile (seulement en développement) */}
+          {isDebugMode && (
+            <>
+              <button
+                onClick={() => setShowDebugPanel(!showDebugPanel)}
+                className="absolute top-20 right-4 w-12 h-12 bg-red-500 text-white rounded-full shadow-lg flex items-center justify-center font-bold z-50"
+              >
+                🐛
+              </button>
 
-          {showDebugPanel && (
-            <div className="absolute top-20 left-4 right-4 bottom-20 bg-black/95 text-white p-4 rounded-xl overflow-auto z-40 font-mono text-xs">
-              <div className="flex justify-between items-center mb-2 sticky top-0 bg-black/95 pb-2">
-                <h3 className="font-bold">Debug Logs</h3>
-                <button
-                  onClick={() => setDebugLogs([])}
-                  className="text-red-400 text-xs"
-                >
-                  Effacer
-                </button>
-              </div>
-              {debugLogs.length === 0 ? (
-                <p className="text-gray-400">Aucun log pour le moment...</p>
-              ) : (
-                debugLogs.map((log, i) => (
-                  <div key={i} className="mb-1 pb-1 border-b border-gray-800">
-                    {log}
+              {showDebugPanel && (
+                <div className="absolute top-20 left-4 right-4 bottom-20 bg-black/95 text-white p-4 rounded-xl overflow-auto z-40 font-mono text-xs">
+                  <div className="flex justify-between items-center mb-2 sticky top-0 bg-black/95 pb-2">
+                    <h3 className="font-bold">Debug Logs</h3>
+                    <button
+                      onClick={() => setDebugLogs([])}
+                      className="text-red-400 text-xs"
+                    >
+                      Effacer
+                    </button>
                   </div>
-                ))
+                  {debugLogs.length === 0 ? (
+                    <p className="text-gray-400">Aucun log pour le moment...</p>
+                  ) : (
+                    debugLogs.map((log, i) => (
+                      <div key={i} className="mb-1 pb-1 border-b border-gray-800">
+                        {log}
+                      </div>
+                    ))
+                  )}
+                </div>
               )}
-            </div>
+            </>
           )}
         </div>
       </motion.div>
