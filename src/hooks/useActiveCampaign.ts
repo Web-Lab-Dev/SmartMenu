@@ -55,12 +55,12 @@ export function useActiveCampaign(restaurantId: string): ActiveCampaignData {
         const campaignsRef = collection(db, COLLECTIONS.CAMPAIGNS);
 
         // Query for active timed promotions
+        // ⚡ PERF: Filter by type server-side (requires composite index)
         const q = query(
           campaignsRef,
           where('restaurantId', '==', restaurantId),
-          where('isActive', '==', true)
-          // Note: Can't filter by type in query if some campaigns don't have the field
-          // Will filter client-side instead
+          where('isActive', '==', true),
+          where('type', '==', 'timed_promotion')
         );
 
         unsubscribe = onSnapshot(
@@ -91,9 +91,8 @@ export function useActiveCampaign(restaurantId: string): ActiveCampaignData {
                 } as Campaign;
 
                 return campaign;
-              })
-              // Filter for timed_promotion type only (client-side)
-              .filter((c) => c.type === 'timed_promotion');
+              });
+              // ⚡ PERF: Client-side filter removed - now filtered server-side
 
             setCampaigns(campaignsList);
             setLoading(false);

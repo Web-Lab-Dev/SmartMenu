@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   getDb,
   collection,
@@ -64,6 +64,11 @@ export function useMenuData(restaurantId: string): MenuData {
   const [products, setProducts] = useState<Product[]>([]);
   const [error, setError] = useState<Error | null>(null);
 
+  // ⚡ PERF: Debounce state updates to batch changes
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const pendingCategoriesRef = useRef<Category[] | null>(null);
+  const pendingProductsRef = useRef<Product[] | null>(null);
+
   // Dual real-time listeners
   useEffect(() => {
     if (!restaurantId) {
@@ -76,6 +81,32 @@ export function useMenuData(restaurantId: string): MenuData {
     let categoriesUnsubscribe: Unsubscribe | null = null;
     let productsUnsubscribe: Unsubscribe | null = null;
     let mounted = true;
+
+    // ⚡ PERF: Batch setState calls with debounce
+    const flushPendingUpdates = () => {
+      if (!mounted) return;
+
+      if (pendingCategoriesRef.current !== null) {
+        setCategories(pendingCategoriesRef.current);
+        pendingCategoriesRef.current = null;
+      }
+      if (pendingProductsRef.current !== null) {
+        setProducts(pendingProductsRef.current);
+        pendingProductsRef.current = null;
+      }
+
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+        debounceTimerRef.current = null;
+      }
+    };
+
+    const scheduleUpdate = () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+      debounceTimerRef.current = setTimeout(flushPendingUpdates, 300);
+    };
 
     const setupListeners = async () => {
       try {
@@ -104,7 +135,9 @@ export function useMenuData(restaurantId: string): MenuData {
             });
 
             // console.log('[useMenuData] 📂 Categories updated:', cats.length);
-            setCategories(cats);
+            // ⚡ PERF: Debounce update instead of immediate setState
+            pendingCategoriesRef.current = cats;
+            scheduleUpdate();
           },
           (err) => {
             console.error('[useMenuData] ❌ Categories listener error:', err);
@@ -154,7 +187,9 @@ export function useMenuData(restaurantId: string): MenuData {
             });
 
             // console.log('[useMenuData] 🍽️  Products updated:', prods.length, '(available only)');
-            setProducts(prods);
+            // ⚡ PERF: Debounce update instead of immediate setState
+            pendingProductsRef.current = prods;
+            scheduleUpdate();
           },
           (err) => {
             console.error('[useMenuData] ❌ Products listener error:', err);
@@ -178,6 +213,13 @@ export function useMenuData(restaurantId: string): MenuData {
     // Cleanup function
     return () => {
       mounted = false;
+
+      // Clear any pending debounce timer
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+        debounceTimerRef.current = null;
+      }
+
       if (categoriesUnsubscribe) {
         // console.log('[useMenuData] 🧹 Cleaning up categories listener');
         categoriesUnsubscribe();
