@@ -108,9 +108,14 @@ export class CouponService {
       throw new Error('Cette campagne est inactive');
     }
 
+    // Verify this is a lottery campaign
+    if (campaign.type === 'timed_promotion') {
+      throw new Error('Cette campagne n\'est pas une tombola');
+    }
+
     // 3. Win probability logic
     const randomNumber = Math.random() * 100; // 0-100
-    const won = randomNumber < campaign.winProbability;
+    const won = randomNumber < (campaign.winProbability ?? 0);
 
     console.log('[CouponService] 🎲 Random:', randomNumber.toFixed(2), '| Probability:', campaign.winProbability, '| Won:', won);
 
