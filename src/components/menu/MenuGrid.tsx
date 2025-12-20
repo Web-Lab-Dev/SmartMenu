@@ -6,13 +6,19 @@
 'use client';
 
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
+import dynamic from 'next/dynamic';
 import { motion } from 'framer-motion';
 import type { Product, Category } from '@/types/schema';
 import { HeroCard, HeroCardSkeleton } from './HeroCard';
 import { CompactCard, CompactCardSkeleton } from './CompactCard';
-import { ProductDrawer } from './ProductDrawer';
 import { useCartStore } from '@/lib/store';
 import { toast } from 'sonner';
+
+// Dynamic import ProductDrawer to avoid SSR issues with vaul
+const ProductDrawer = dynamic(
+  () => import('./ProductDrawer').then((mod) => mod.ProductDrawer),
+  { ssr: false }
+);
 
 interface MenuGridProps {
   products: Product[];

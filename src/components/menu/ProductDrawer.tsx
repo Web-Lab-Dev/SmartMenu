@@ -33,27 +33,35 @@ export function ProductDrawer({ product, isOpen, onClose }: ProductDrawerProps) 
   const [quantity, setQuantity] = useState(1);
   const { addItem } = useCartStore();
 
-  // Don't render anything if no product or not open
-  if (!product || !isOpen) return null;
-
   // Handle multiple images - use images array or fallback to legacy image field
-  const images = Array.isArray(product.images) && product.images.length > 0
+  const images = product && Array.isArray(product.images) && product.images.length > 0
     ? product.images
-    : product.image
+    : product?.image
     ? [product.image]
     : [];
   const hasMultipleImages = images.length > 1;
 
   // Auto-play carousel
   useEffect(() => {
-    if (!hasMultipleImages || !isOpen) return;
+    if (!hasMultipleImages || !isOpen || !product) return;
 
     const interval = setInterval(() => {
       setCurrentImageIndex((prev) => (prev + 1) % images.length);
     }, 3000);
 
     return () => clearInterval(interval);
-  }, [hasMultipleImages, images.length, isOpen]);
+  }, [hasMultipleImages, images.length, isOpen, product]);
+
+  // Reset quantity when drawer closes
+  useEffect(() => {
+    if (!isOpen) {
+      setQuantity(1);
+      setCurrentImageIndex(0);
+    }
+  }, [isOpen]);
+
+  // Don't render anything if no product
+  if (!product) return null;
 
   const handleAddToCart = () => {
     try {
