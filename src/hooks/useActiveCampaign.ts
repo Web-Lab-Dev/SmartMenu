@@ -71,19 +71,26 @@ export function useActiveCampaign(restaurantId: string): ActiveCampaignData {
             const campaignsList = snapshot.docs
               .map((doc) => {
                 const data = doc.data();
-                return {
+
+                // Convert Firestore Timestamp to Date for rules
+                let convertedRules = data.rules;
+                if (data.rules) {
+                  convertedRules = {
+                    ...data.rules,
+                    startDate: data.rules.startDate?.toDate ? data.rules.startDate.toDate() : (data.rules.startDate ? new Date(data.rules.startDate) : undefined),
+                    endDate: data.rules.endDate?.toDate ? data.rules.endDate.toDate() : (data.rules.endDate ? new Date(data.rules.endDate) : undefined),
+                  };
+                }
+
+                const campaign = {
                   id: doc.id,
                   ...data,
                   createdAt: data.createdAt?.toDate() || new Date(),
                   updatedAt: data.updatedAt?.toDate() || new Date(),
-                  rules: data.rules
-                    ? {
-                        ...data.rules,
-                        startDate: data.rules.startDate?.toDate(),
-                        endDate: data.rules.endDate?.toDate(),
-                      }
-                    : undefined,
+                  rules: convertedRules,
                 } as Campaign;
+
+                return campaign;
               })
               // Filter for timed_promotion type only (client-side)
               .filter((c) => c.type === 'timed_promotion');

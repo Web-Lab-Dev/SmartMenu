@@ -119,11 +119,19 @@ export class CampaignService {
         restaurantId: data.restaurantId,
         name: data.name,
         isActive: data.isActive,
+        // Lottery fields (optional for timed_promotion)
         winProbability: data.winProbability,
         rewardType: data.rewardType,
         rewardValue: data.rewardValue,
         rewardDescription: data.rewardDescription,
         validityDays: data.validityDays,
+        // Timed promotion fields (optional for lottery)
+        type: data.type,
+        recurrence: data.recurrence,
+        rules: data.rules,
+        discount: data.discount,
+        targetCategories: data.targetCategories,
+        bannerText: data.bannerText,
         createdAt: (data.createdAt as Timestamp)?.toDate() || new Date(),
         updatedAt: (data.updatedAt as Timestamp)?.toDate() || new Date(),
       };
@@ -153,11 +161,19 @@ export class CampaignService {
         restaurantId: data.restaurantId,
         name: data.name,
         isActive: data.isActive,
+        // Lottery fields (optional for timed_promotion)
         winProbability: data.winProbability,
         rewardType: data.rewardType,
         rewardValue: data.rewardValue,
         rewardDescription: data.rewardDescription,
         validityDays: data.validityDays,
+        // Timed promotion fields (optional for lottery)
+        type: data.type,
+        recurrence: data.recurrence,
+        rules: data.rules,
+        discount: data.discount,
+        targetCategories: data.targetCategories,
+        bannerText: data.bannerText,
         createdAt: (data.createdAt as Timestamp)?.toDate() || new Date(),
         updatedAt: (data.updatedAt as Timestamp)?.toDate() || new Date(),
       };
