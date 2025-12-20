@@ -4,11 +4,15 @@ import { useState, useEffect } from 'react';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { AdminPageWrapper, EmptyState } from '@/components/admin';
 import { CampaignService } from '@/services/CampaignService';
+import { TimedPromotionForm } from '@/components/admin/TimedPromotionForm';
 import type { Campaign, CampaignRewardType } from '@/types/schema';
 import { toast } from 'sonner';
-import { Plus, Trash2, ToggleLeft, ToggleRight, Edit2, Gift, Percent, DollarSign } from 'lucide-react';
+import { Plus, Trash2, ToggleLeft, ToggleRight, Edit2, Gift, Percent, DollarSign, Sparkles, Calendar, Clock } from 'lucide-react';
 import { CAMPAIGN_CONSTANTS, VALIDATION_LIMITS } from '@/lib/constants';
 import { logger } from '@/lib/logger';
+import { formatPromotionSchedule } from '@/lib/promo-utils';
+
+type TabType = 'lottery' | 'timed';
 
 export default function MarketingPage() {
   const { restaurantId, loading: authLoading } = useAdminAuth();
@@ -16,6 +20,7 @@ export default function MarketingPage() {
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingCampaign, setEditingCampaign] = useState<Campaign | null>(null);
+  const [activeTab, setActiveTab] = useState<TabType>('lottery');
 
   useEffect(() => {
     if (!restaurantId) {
@@ -77,12 +82,18 @@ export default function MarketingPage() {
     }
   };
 
+  // Filter campaigns by type
+  const lotteryCampaigns = campaigns.filter((c) => !c.type || c.type === 'lottery');
+  const timedPromotions = campaigns.filter((c) => c.type === 'timed_promotion');
+
+  const displayedCampaigns = activeTab === 'lottery' ? lotteryCampaigns : timedPromotions;
+
   return (
     <>
     <AdminPageWrapper
       loading={authLoading || loading}
       loadingText="Chargement des campagnes..."
-      isEmpty={!restaurantId || campaigns.length === 0}
+      isEmpty={!restaurantId || displayedCampaigns.length === 0}
       emptyState={
         !restaurantId ? (
           <div className="flex items-center justify-center h-96">
@@ -90,11 +101,15 @@ export default function MarketingPage() {
           </div>
         ) : (
           <EmptyState
-            icon={Gift}
-            title="Aucune campagne"
-            description="Créez votre première campagne promotionnelle"
+            icon={activeTab === 'lottery' ? Gift : Sparkles}
+            title={activeTab === 'lottery' ? 'Aucune campagne tombola' : 'Aucune promotion'}
+            description={
+              activeTab === 'lottery'
+                ? 'Créez votre première campagne de tombola'
+                : 'Créez votre premier Happy Hour ou événement spécial'
+            }
             action={{
-              label: 'Créer une campagne',
+              label: activeTab === 'lottery' ? 'Créer une campagne' : 'Créer une promotion',
               onClick: () => setShowCreateModal(true),
             }}
           />
@@ -102,24 +117,62 @@ export default function MarketingPage() {
       }
     >
       <div className="space-y-6">
+        {/* Tabs Navigation */}
+        <div className="flex items-center gap-2 border-b border-gray-700">
+          <button
+            onClick={() => setActiveTab('lottery')}
+            className={`flex items-center gap-2 px-4 py-3 font-medium transition-all ${
+              activeTab === 'lottery'
+                ? 'text-orange-400 border-b-2 border-orange-500'
+                : 'text-gray-400 hover:text-gray-300'
+            }`}
+          >
+            <Gift className="w-5 h-5" />
+            Campagnes Tombola
+            {lotteryCampaigns.length > 0 && (
+              <span className="ml-1 px-2 py-0.5 text-xs bg-gray-700 text-gray-300 rounded-full">
+                {lotteryCampaigns.length}
+              </span>
+            )}
+          </button>
+          <button
+            onClick={() => setActiveTab('timed')}
+            className={`flex items-center gap-2 px-4 py-3 font-medium transition-all ${
+              activeTab === 'timed'
+                ? 'text-orange-400 border-b-2 border-orange-500'
+                : 'text-gray-400 hover:text-gray-300'
+            }`}
+          >
+            <Sparkles className="w-5 h-5" />
+            Promotions & Happy Hour
+            {timedPromotions.length > 0 && (
+              <span className="ml-1 px-2 py-0.5 text-xs bg-gray-700 text-gray-300 rounded-full">
+                {timedPromotions.length}
+              </span>
+            )}
+          </button>
+        </div>
+
         {/* Action Bar */}
         <div className="flex items-center justify-between">
           <p className="text-gray-400">
-            Créez des campagnes de tombola pour fidéliser vos clients
+            {activeTab === 'lottery'
+              ? 'Créez des campagnes de tombola pour fidéliser vos clients'
+              : 'Gérez vos Happy Hours et événements spéciaux avec réductions automatiques'}
           </p>
           <button
             onClick={() => setShowCreateModal(true)}
             className="flex items-center gap-2 px-4 py-2.5 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors font-medium"
           >
             <Plus className="w-5 h-5" />
-            Nouvelle Campagne
+            {activeTab === 'lottery' ? 'Nouvelle Campagne' : 'Nouvelle Promotion'}
           </button>
         </div>
 
         {/* Campaigns List */}
-        {campaigns.length > 0 && (
+        {displayedCampaigns.length > 0 && (
           <div className="grid gap-4">
-            {campaigns.map((campaign) => (
+            {displayedCampaigns.map((campaign) => (
               <div
                 key={campaign.id}
                 className="bg-gray-800 rounded-xl p-6 border border-gray-700 hover:border-gray-600 transition-all"
@@ -128,50 +181,96 @@ export default function MarketingPage() {
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-4">
                       <div className="p-2.5 bg-orange-500/10 rounded-lg text-orange-400">
-                        {getRewardIcon(campaign.rewardType)}
+                        {campaign.type === 'timed_promotion' ? (
+                          <Sparkles className="w-5 h-5" />
+                        ) : (
+                          getRewardIcon(campaign.rewardType!)
+                        )}
                       </div>
                       <div>
                         <h3 className="text-xl font-bold text-white">
                           {campaign.name}
                         </h3>
-                        <p className="text-sm text-gray-400">
-                          {campaign.rewardDescription}
-                        </p>
+                        {campaign.type === 'timed_promotion' ? (
+                          <p className="text-sm text-gray-400">
+                            {campaign.bannerText}
+                          </p>
+                        ) : (
+                          <p className="text-sm text-gray-400">
+                            {campaign.rewardDescription}
+                          </p>
+                        )}
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-6">
-                      <div>
-                        <p className="text-xs text-gray-500 mb-1">
-                          Probabilité de gain
-                        </p>
-                        <p className="text-2xl font-bold text-white">
-                          {campaign.winProbability}%
-                        </p>
+                    {campaign.type === 'timed_promotion' ? (
+                      // Timed Promotion Display
+                      <div className="grid grid-cols-3 gap-6">
+                        <div>
+                          <p className="text-xs text-gray-500 mb-1">
+                            <Calendar className="w-3 h-3 inline mr-1" />
+                            Type
+                          </p>
+                          <p className="text-lg font-bold text-white">
+                            {campaign.recurrence === 'recurring' ? 'Récurrent' : 'Événement unique'}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-500 mb-1">
+                            <Clock className="w-3 h-3 inline mr-1" />
+                            Horaires
+                          </p>
+                          <p className="text-lg font-bold text-white">
+                            {formatPromotionSchedule(campaign)}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-500 mb-1">
+                            <Percent className="w-3 h-3 inline mr-1" />
+                            Réduction
+                          </p>
+                          <p className="text-lg font-bold text-white">
+                            {campaign.discount?.type === 'percentage'
+                              ? `-${campaign.discount.value}%`
+                              : `-${campaign.discount?.value} FCFA`}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-xs text-gray-500 mb-1">
-                          Validité
-                        </p>
-                        <p className="text-2xl font-bold text-white">
-                          {campaign.validityDays} <span className="text-sm text-gray-400 font-normal">jours</span>
-                        </p>
+                    ) : (
+                      // Lottery Campaign Display
+                      <div className="grid grid-cols-3 gap-6">
+                        <div>
+                          <p className="text-xs text-gray-500 mb-1">
+                            Probabilité de gain
+                          </p>
+                          <p className="text-2xl font-bold text-white">
+                            {campaign.winProbability}%
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-500 mb-1">
+                            Validité
+                          </p>
+                          <p className="text-2xl font-bold text-white">
+                            {campaign.validityDays} <span className="text-sm text-gray-400 font-normal">jours</span>
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-500 mb-1">
+                            Statut
+                          </p>
+                          <span
+                            className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
+                              campaign.isActive
+                                ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+                                : 'bg-gray-700 text-gray-400 border border-gray-600'
+                            }`}
+                          >
+                            {campaign.isActive ? 'Active' : 'Inactive'}
+                          </span>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-xs text-gray-500 mb-1">
-                          Statut
-                        </p>
-                        <span
-                          className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
-                            campaign.isActive
-                              ? 'bg-green-500/20 text-green-400 border border-green-500/30'
-                              : 'bg-gray-700 text-gray-400 border border-gray-600'
-                          }`}
-                        >
-                          {campaign.isActive ? 'Active' : 'Inactive'}
-                        </span>
-                      </div>
-                    </div>
+                    )}
                   </div>
 
                   <div className="flex items-center gap-2 ml-6">
@@ -211,19 +310,37 @@ export default function MarketingPage() {
 
     {/* Create/Edit Modal - Outside AdminPageWrapper */}
     {(showCreateModal || editingCampaign) && restaurantId && (
-      <CampaignModal
-        campaign={editingCampaign}
-        restaurantId={restaurantId}
-        onClose={() => {
-          setShowCreateModal(false);
-          setEditingCampaign(null);
-        }}
-        onSuccess={() => {
-          setShowCreateModal(false);
-          setEditingCampaign(null);
-          loadCampaigns();
-        }}
-      />
+      <>
+        {activeTab === 'lottery' ? (
+          <CampaignModal
+            campaign={editingCampaign}
+            restaurantId={restaurantId}
+            onClose={() => {
+              setShowCreateModal(false);
+              setEditingCampaign(null);
+            }}
+            onSuccess={() => {
+              setShowCreateModal(false);
+              setEditingCampaign(null);
+              loadCampaigns();
+            }}
+          />
+        ) : (
+          <TimedPromotionForm
+            campaign={editingCampaign}
+            restaurantId={restaurantId}
+            onClose={() => {
+              setShowCreateModal(false);
+              setEditingCampaign(null);
+            }}
+            onSuccess={() => {
+              setShowCreateModal(false);
+              setEditingCampaign(null);
+              loadCampaigns();
+            }}
+          />
+        )}
+      </>
     )}
     </>
   );

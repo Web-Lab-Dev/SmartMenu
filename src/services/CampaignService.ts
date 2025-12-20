@@ -238,4 +238,164 @@ export class CampaignService {
   static async toggleActive(campaignId: string, isActive: boolean): Promise<void> {
     await this.update(campaignId, { isActive });
   }
+
+  /**
+   * Create a timed promotion (Happy Hour / Special Event)
+   */
+  static async createTimedPromotion(data: {
+    restaurantId: string;
+    name: string;
+    recurrence: 'one_shot' | 'recurring';
+    rules: {
+      startDate?: Date;
+      endDate?: Date;
+      daysOfWeek?: number[];
+      startTime?: string;
+      endTime?: string;
+    };
+    discount: {
+      type: 'percentage' | 'fixed';
+      value: number;
+    };
+    targetCategories: string[];
+    bannerText: string;
+    isActive?: boolean;
+  }): Promise<string> {
+    // Validation
+    if (!data.name?.trim()) {
+      throw new Error('Le nom de la promotion est requis');
+    }
+
+    if (data.recurrence === 'one_shot') {
+      if (!data.rules.startDate || !data.rules.endDate) {
+        throw new Error('Les dates de début et fin sont requises pour un événement unique');
+      }
+      if (data.rules.endDate < data.rules.startDate) {
+        throw new Error('La date de fin doit être après la date de début');
+      }
+    } else if (data.recurrence === 'recurring') {
+      if (!data.rules.daysOfWeek || data.rules.daysOfWeek.length === 0) {
+        throw new Error('Au moins un jour doit être sélectionné pour un Happy Hour récurrent');
+      }
+      if (!data.rules.startTime || !data.rules.endTime) {
+        throw new Error('Les heures de début et fin sont requises');
+      }
+      if (data.rules.endTime <= data.rules.startTime) {
+        throw new Error('L\'heure de fin doit être après l\'heure de début');
+      }
+    }
+
+    if (data.discount.value <= 0) {
+      throw new Error('La valeur de la réduction doit être positive');
+    }
+
+    if (data.discount.type === 'percentage' && data.discount.value > 100) {
+      throw new Error('La réduction ne peut pas dépasser 100%');
+    }
+
+    if (!data.bannerText?.trim()) {
+      throw new Error('Le texte de la bannière est requis');
+    }
+
+    const db = getDb();
+    const campaignsRef = collection(db, COLLECTIONS.CAMPAIGNS);
+
+    const campaignData = {
+      restaurantId: data.restaurantId,
+      name: data.name.trim(),
+      type: 'timed_promotion' as const,
+      recurrence: data.recurrence,
+      rules: data.rules,
+      discount: data.discount,
+      targetCategories: data.targetCategories,
+      bannerText: data.bannerText.trim(),
+      isActive: data.isActive ?? true,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    };
+
+    const docRef = await addDoc(campaignsRef, campaignData);
+    console.log('[CampaignService] ✅ Timed promotion created:', docRef.id);
+    return docRef.id;
+  }
+
+  /**
+   * Update a timed promotion
+   */
+  static async updateTimedPromotion(
+    campaignId: string,
+    data: {
+      restaurantId: string;
+      name: string;
+      recurrence: 'one_shot' | 'recurring';
+      rules: {
+        startDate?: Date;
+        endDate?: Date;
+        daysOfWeek?: number[];
+        startTime?: string;
+        endTime?: string;
+      };
+      discount: {
+        type: 'percentage' | 'fixed';
+        value: number;
+      };
+      targetCategories: string[];
+      bannerText: string;
+      isActive?: boolean;
+    }
+  ): Promise<void> {
+    // Same validation as create
+    if (!data.name?.trim()) {
+      throw new Error('Le nom de la promotion est requis');
+    }
+
+    if (data.recurrence === 'one_shot') {
+      if (!data.rules.startDate || !data.rules.endDate) {
+        throw new Error('Les dates de début et fin sont requises pour un événement unique');
+      }
+      if (data.rules.endDate < data.rules.startDate) {
+        throw new Error('La date de fin doit être après la date de début');
+      }
+    } else if (data.recurrence === 'recurring') {
+      if (!data.rules.daysOfWeek || data.rules.daysOfWeek.length === 0) {
+        throw new Error('Au moins un jour doit être sélectionné pour un Happy Hour récurrent');
+      }
+      if (!data.rules.startTime || !data.rules.endTime) {
+        throw new Error('Les heures de début et fin sont requises');
+      }
+      if (data.rules.endTime <= data.rules.startTime) {
+        throw new Error('L\'heure de fin doit être après l\'heure de début');
+      }
+    }
+
+    if (data.discount.value <= 0) {
+      throw new Error('La valeur de la réduction doit être positive');
+    }
+
+    if (data.discount.type === 'percentage' && data.discount.value > 100) {
+      throw new Error('La réduction ne peut pas dépasser 100%');
+    }
+
+    if (!data.bannerText?.trim()) {
+      throw new Error('Le texte de la bannière est requis');
+    }
+
+    const db = getDb();
+    const campaignRef = doc(db, COLLECTIONS.CAMPAIGNS, campaignId);
+
+    const updateData = {
+      name: data.name.trim(),
+      type: 'timed_promotion' as const,
+      recurrence: data.recurrence,
+      rules: data.rules,
+      discount: data.discount,
+      targetCategories: data.targetCategories,
+      bannerText: data.bannerText.trim(),
+      isActive: data.isActive,
+      updatedAt: serverTimestamp(),
+    };
+
+    await updateDoc(campaignRef, updateData);
+    console.log('[CampaignService] ✅ Timed promotion updated:', campaignId);
+  }
 }
