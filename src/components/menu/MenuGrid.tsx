@@ -8,7 +8,7 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import { motion } from 'framer-motion';
-import type { Product, Category } from '@/types/schema';
+import type { Product, Campaign } from '@/types/schema';
 import { HeroCard, HeroCardSkeleton } from './HeroCard';
 import { CompactCard, CompactCardSkeleton } from './CompactCard';
 import { useCartStore } from '@/lib/store';
@@ -25,6 +25,13 @@ interface MenuGridProps {
   activeCategory: string | null;
   searchQuery?: string;
   loading?: boolean;
+  // Promo data (optional)
+  activeCampaign?: Campaign | null;
+  getProductPrice?: (product: Product) => {
+    price: number;
+    originalPrice: number | null;
+    hasDiscount: boolean;
+  };
 }
 
 // ⚡ PERF: Externaliser les variants d'animation
@@ -55,7 +62,14 @@ const emptyStateVariants = {
  * - Click on any card opens ProductDrawer with full details
  * - Quick add button on cards adds to cart directly
  */
-export function MenuGrid({ products, activeCategory, searchQuery = '', loading }: MenuGridProps) {
+export function MenuGrid({
+  products,
+  activeCategory,
+  searchQuery = '',
+  loading,
+  activeCampaign,
+  getProductPrice
+}: MenuGridProps) {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const { addItem } = useCartStore();
@@ -171,26 +185,32 @@ export function MenuGrid({ products, activeCategory, searchQuery = '', loading }
             animate={heroGridVariants.animate}
             transition={heroGridTransition}
           >
-            {heroProducts.map((product, idx) => (
-              <motion.div
-                key={product.id}
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{
-                  delay: idx * 0.15,
-                  type: 'spring',
-                  stiffness: 300,
-                  damping: 24
-                }}
-              >
-                <HeroCard
-                  product={product}
-                  onClick={() => handleProductClick(product)}
-                  priority={idx === 0}
-                  onAddToCart={(e) => handleQuickAdd(product, e)}
-                />
-              </motion.div>
-            ))}
+            {heroProducts.map((product, idx) => {
+              const priceData = getProductPrice?.(product);
+              return (
+                <motion.div
+                  key={product.id}
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{
+                    delay: idx * 0.15,
+                    type: 'spring',
+                    stiffness: 300,
+                    damping: 24
+                  }}
+                >
+                  <HeroCard
+                    product={product}
+                    onClick={() => handleProductClick(product)}
+                    priority={idx === 0}
+                    onAddToCart={(e) => handleQuickAdd(product, e)}
+                    discountedPrice={priceData?.hasDiscount ? priceData.price : undefined}
+                    originalPrice={priceData?.originalPrice ?? undefined}
+                    promoBadge={priceData?.hasDiscount && activeCampaign?.recurrence === 'recurring' ? 'HAPPY HOUR' : priceData?.hasDiscount ? 'PROMO' : undefined}
+                  />
+                </motion.div>
+              );
+            })}
           </motion.div>
         )}
 
@@ -202,25 +222,31 @@ export function MenuGrid({ products, activeCategory, searchQuery = '', loading }
             animate={compactGridVariants.animate}
             transition={compactGridTransition}
           >
-            {compactProducts.map((product, idx) => (
-              <motion.div
-                key={product.id}
-                initial={{ opacity: 0, x: -30 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{
-                  delay: 0.3 + idx * 0.06,
-                  type: 'spring',
-                  stiffness: 260,
-                  damping: 20
-                }}
-              >
-                <CompactCard
-                  product={product}
-                  onClick={() => handleProductClick(product)}
-                  onAddToCart={(e) => handleQuickAdd(product, e)}
-                />
-              </motion.div>
-            ))}
+            {compactProducts.map((product, idx) => {
+              const priceData = getProductPrice?.(product);
+              return (
+                <motion.div
+                  key={product.id}
+                  initial={{ opacity: 0, x: -30 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{
+                    delay: 0.3 + idx * 0.06,
+                    type: 'spring',
+                    stiffness: 260,
+                    damping: 20
+                  }}
+                >
+                  <CompactCard
+                    product={product}
+                    onClick={() => handleProductClick(product)}
+                    onAddToCart={(e) => handleQuickAdd(product, e)}
+                    discountedPrice={priceData?.hasDiscount ? priceData.price : undefined}
+                    originalPrice={priceData?.originalPrice ?? undefined}
+                    promoBadge={priceData?.hasDiscount && activeCampaign?.recurrence === 'recurring' ? 'HAPPY HOUR' : priceData?.hasDiscount ? 'PROMO' : undefined}
+                  />
+                </motion.div>
+              );
+            })}
           </motion.div>
         )}
 

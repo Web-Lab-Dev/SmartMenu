@@ -18,9 +18,11 @@ import { OrderService } from '@/services/OrderService';
 import { WaiterCallService } from '@/services/WaiterCallService';
 import { useCartStore } from '@/lib/store';
 import { useMenuData } from '@/hooks/useMenuData';
+import { useActiveCampaign } from '@/hooks/useActiveCampaign';
 import { getOrCreateCustomerSessionId } from '@/lib/utils';
 import { toast } from 'sonner';
 import type { Restaurant, Category, Order } from '@/types/schema';
+import { PromoBanner } from '@/components/client/PromoBanner';
 
 // Dynamic import AI Chat Bubble (non-critical feature)
 const AIChatBubble = dynamic(
@@ -75,6 +77,14 @@ export default function MenuPage({ params: paramsPromise }: PageProps) {
 
   const { setContext } = useCartStore();
   const customerSessionId = getOrCreateCustomerSessionId();
+
+  // Get active campaign (Happy Hour / timed promotions)
+  const {
+    campaign: activeCampaign,
+    isActive: hasActivePromo,
+    timeRemaining,
+    getProductPrice,
+  } = useActiveCampaign(actualRestaurantId || '');
 
   // Subscribe to orders to track active count
   useEffect(() => {
@@ -255,6 +265,14 @@ export default function MenuPage({ params: paramsPromise }: PageProps) {
 
   return (
     <ThemeProvider branding={branding}>
+      {/* Promo Banner (sticky at top if campaign active) */}
+      {hasActivePromo && activeCampaign && (
+        <PromoBanner
+          campaign={activeCampaign}
+          timeRemaining={timeRemaining}
+        />
+      )}
+
       <MobileShell
         restaurantName={restaurant?.name || 'Restaurant'}
         restaurantId={actualRestaurantId || undefined}
@@ -302,6 +320,8 @@ export default function MenuPage({ params: paramsPromise }: PageProps) {
             products={allProducts}
             activeCategory={activeCategory}
             searchQuery={searchQuery}
+            activeCampaign={activeCampaign}
+            getProductPrice={getProductPrice}
             loading={loadingMenu}
           />
         </div>

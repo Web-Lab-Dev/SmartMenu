@@ -15,6 +15,10 @@ interface CompactCardProps {
   product: Product;
   onClick: () => void;
   onAddToCart: (e: React.MouseEvent) => void;
+  // Promo pricing (optional)
+  discountedPrice?: number;
+  originalPrice?: number;
+  promoBadge?: string;
 }
 
 // ⚡ PERF: Externaliser les variants Framer Motion
@@ -38,7 +42,17 @@ const cardTransition = { duration: 0.2 };
  * - Simple "Add" button on right
  * - Memoized for performance
  */
-function CompactCardComponent({ product, onClick, onAddToCart }: CompactCardProps) {
+function CompactCardComponent({
+  product,
+  onClick,
+  onAddToCart,
+  discountedPrice,
+  originalPrice,
+  promoBadge
+}: CompactCardProps) {
+  const displayPrice = discountedPrice ?? product.price;
+  const hasDiscount = !!discountedPrice && !!originalPrice;
+
   return (
     <motion.div
       className="relative rounded-xl overflow-hidden shadow-sm border cursor-pointer group transition-all duration-300"
@@ -67,6 +81,18 @@ function CompactCardComponent({ product, onClick, onAddToCart }: CompactCardProp
               <span className="text-3xl">🍽️</span>
             </div>
           )}
+          {/* Promo Badge (small, top-right) */}
+          {promoBadge && hasDiscount && (
+            <div
+              className="absolute top-1 right-1 px-1.5 py-0.5 rounded text-[10px] font-bold shadow-md"
+              style={{
+                background: 'linear-gradient(135deg, #FF7D29 0%, #FF5722 100%)',
+                color: '#000000',
+              }}
+            >
+              🔥
+            </div>
+          )}
         </div>
 
         {/* Content */}
@@ -81,11 +107,20 @@ function CompactCardComponent({ product, onClick, onAddToCart }: CompactCardProp
             </p>
           )}
 
-          <div
-            className="font-bold text-sm"
-            style={{ color: 'var(--brand-color)' }}
-          >
-            {product.price.toLocaleString()} FCFA
+          <div className="flex items-center gap-2">
+            {/* Original price (strikethrough) */}
+            {hasDiscount && (
+              <div className="text-xs text-gray-500 line-through">
+                {originalPrice.toLocaleString()} F
+              </div>
+            )}
+            {/* Display price */}
+            <div
+              className={`font-bold ${hasDiscount ? 'text-base' : 'text-sm'}`}
+              style={{ color: hasDiscount ? '#FF7D29' : 'var(--brand-color)' }}
+            >
+              {displayPrice.toLocaleString()} FCFA
+            </div>
           </div>
         </div>
 

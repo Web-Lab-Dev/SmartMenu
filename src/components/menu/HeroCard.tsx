@@ -16,6 +16,10 @@ interface HeroCardProps {
   onClick: () => void;
   onAddToCart: (e: React.MouseEvent) => void;
   priority?: boolean; // For LCP optimization on first card
+  // Promo pricing (optional)
+  discountedPrice?: number;
+  originalPrice?: number;
+  promoBadge?: string; // "HAPPY HOUR" or "PROMO"
 }
 
 // ⚡ PERF: Externaliser les variants Framer Motion pour éviter de recréer les objets
@@ -39,7 +43,18 @@ const cardTransition = { duration: 0.3 };
  * - Floating "Add" button on image
  * - Memoized for performance
  */
-function HeroCardComponent({ product, onClick, onAddToCart, priority = false }: HeroCardProps) {
+function HeroCardComponent({
+  product,
+  onClick,
+  onAddToCart,
+  priority = false,
+  discountedPrice,
+  originalPrice,
+  promoBadge
+}: HeroCardProps) {
+  const displayPrice = discountedPrice ?? product.price;
+  const hasDiscount = !!discountedPrice && !!originalPrice;
+
   return (
     <motion.div
       className="relative rounded-2xl overflow-hidden shadow-sm border cursor-pointer group transition-all duration-300"
@@ -69,6 +84,21 @@ function HeroCardComponent({ product, onClick, onAddToCart, priority = false }: 
           </div>
         )}
 
+        {/* Promo Badge (top-left) */}
+        {promoBadge && hasDiscount && (
+          <motion.div
+            initial={{ scale: 0, rotate: -12 }}
+            animate={{ scale: 1, rotate: -12 }}
+            className="absolute top-3 left-3 px-3 py-1.5 rounded-lg font-bold text-xs shadow-lg"
+            style={{
+              background: 'linear-gradient(135deg, #FF7D29 0%, #FF5722 100%)',
+              color: '#000000',
+            }}
+          >
+            🔥 {promoBadge}
+          </motion.div>
+        )}
+
         {/* Gradient Overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
 
@@ -94,11 +124,20 @@ function HeroCardComponent({ product, onClick, onAddToCart, priority = false }: 
           <h3 className="font-display font-bold text-lg text-white uppercase tracking-wide line-clamp-1 flex-1">
             {product.name}
           </h3>
-          <div
-            className="font-bold text-lg shrink-0"
-            style={{ color: 'var(--brand-color)' }}
-          >
-            {product.price.toLocaleString()} FCFA
+          <div className="shrink-0 flex flex-col items-end">
+            {/* Show original price strikethrough if on promo */}
+            {hasDiscount && (
+              <div className="text-xs text-gray-500 line-through">
+                {originalPrice.toLocaleString()} F
+              </div>
+            )}
+            {/* Display price */}
+            <div
+              className={`font-bold ${hasDiscount ? 'text-xl' : 'text-lg'}`}
+              style={{ color: hasDiscount ? '#FF7D29' : 'var(--brand-color)' }}
+            >
+              {displayPrice.toLocaleString()} FCFA
+            </div>
           </div>
         </div>
 

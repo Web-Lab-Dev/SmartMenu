@@ -214,16 +214,53 @@ export interface SplitBillItem extends OrderItem {
 
 export type CampaignRewardType = 'percentage' | 'fixed_amount' | 'free_item';
 
+// Campaign types: lottery (scratch card) or timed_promotion (Happy Hour)
+export type CampaignType = 'lottery' | 'timed_promotion';
+
+// Recurrence for timed promotions
+export type RecurrenceType = 'one_shot' | 'recurring';
+
+// Discount configuration for timed promotions
+export interface DiscountConfig {
+  type: 'percentage' | 'fixed';
+  value: number; // Percentage (20 for 20%) or fixed amount in FCFA
+}
+
+// Time-based promotion rules
+export interface TimedPromotionRules {
+  // For one-shot events (Christmas, New Year, etc.)
+  startDate?: Date;
+  endDate?: Date;
+
+  // For recurring events (Happy Hour every Friday)
+  daysOfWeek?: number[]; // [0-6] where 0=Sunday, 1=Monday, ..., 6=Saturday
+  startTime?: string; // "17:00" (24h format)
+  endTime?: string; // "20:00" (24h format)
+}
+
 export interface Campaign {
   id: string;
   restaurantId: string;
   name: string;
   isActive: boolean;
-  winProbability: number; // 0-100 (e.g., 20 = 20% chance to win)
-  rewardType: CampaignRewardType;
-  rewardValue: number; // Percentage (e.g., 10 for 10% off) or amount in cents or productId
-  rewardDescription: string; // Human-readable description (e.g., "10% de réduction", "Café offert")
-  validityDays: number; // How many days the coupon is valid after generation
+
+  // Campaign type
+  type?: CampaignType; // Optional for backward compatibility - defaults to 'lottery'
+
+  // For lottery campaigns
+  winProbability?: number; // 0-100 (e.g., 20 = 20% chance to win)
+  rewardType?: CampaignRewardType;
+  rewardValue?: number; // Percentage (e.g., 10 for 10% off) or amount in cents or productId
+  rewardDescription?: string; // Human-readable description (e.g., "10% de réduction", "Café offert")
+  validityDays?: number; // How many days the coupon is valid after generation
+
+  // For timed_promotion campaigns
+  recurrence?: RecurrenceType;
+  rules?: TimedPromotionRules;
+  discount?: DiscountConfig;
+  targetCategories?: string[]; // Category IDs that get the discount
+  bannerText?: string; // Message to display on banner (e.g., "-50% sur les Cocktails jusqu'à 20h!")
+
   createdAt: Date;
   updatedAt: Date;
 }
