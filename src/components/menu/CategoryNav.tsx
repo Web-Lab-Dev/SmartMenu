@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { useRef, useEffect, useMemo } from 'react';
+import { useRef, useEffect, useMemo, memo } from 'react';
 import type { Category } from '@/types/schema';
 
 interface CategoryNavProps {
@@ -13,8 +13,9 @@ interface CategoryNavProps {
 /**
  * Horizontal category navigation with animated underline
  * Simple style with "Tous" as first option
+ * Memoized for performance
  */
-export function CategoryNav({
+function CategoryNavComponent({
   categories,
   activeCategory,
   onCategoryChange,
@@ -103,3 +104,6 @@ export function CategoryNav({
     </div>
   );
 }
+
+// ⚡ PERF: Export memoized version to prevent unnecessary re-renders
+export const CategoryNav = memo(CategoryNavComponent);

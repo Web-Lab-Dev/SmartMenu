@@ -5,7 +5,7 @@
 
 'use client';
 
-import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
+import { useState, useRef, useEffect, useMemo, useCallback, memo } from 'react';
 import dynamic from 'next/dynamic';
 import { motion } from 'framer-motion';
 import type { Product, Campaign } from '@/types/schema';
@@ -53,6 +53,41 @@ const emptyStateVariants = {
   animate: { opacity: 1, y: 0 },
 };
 
+// ⚡ PERF: Pre-créer objets transition pour éviter allocations dans loops
+const cardVariants = {
+  initial: { opacity: 0, y: 30 },
+  animate: { opacity: 1, y: 0 },
+};
+
+const cardTransitionBase = {
+  type: 'spring' as const,
+  stiffness: 300,
+  damping: 24,
+};
+
+// Factory function pour transitions avec delay
+const getCardTransition = (index: number) => ({
+  ...cardTransitionBase,
+  delay: index * 0.15,
+});
+
+// Variants et transition pour CompactCards
+const compactCardVariants = {
+  initial: { opacity: 0, x: -30 },
+  animate: { opacity: 1, x: 0 },
+};
+
+const compactCardTransitionBase = {
+  type: 'spring' as const,
+  stiffness: 260,
+  damping: 20,
+};
+
+const getCompactCardTransition = (index: number) => ({
+  ...compactCardTransitionBase,
+  delay: 0.3 + index * 0.06,
+});
+
 /**
  * MenuGrid - Hybrid layout for product display
  *
@@ -61,8 +96,9 @@ const emptyStateVariants = {
  * - Remaining products: CompactCard (horizontal, list-style)
  * - Click on any card opens ProductDrawer with full details
  * - Quick add button on cards adds to cart directly
+ * - Memoized for performance
  */
-export function MenuGrid({
+function MenuGridComponent({
   products,
   activeCategory,
   searchQuery = '',
@@ -198,19 +234,15 @@ export function MenuGrid({
               return (
                 <motion.div
                   key={product.id}
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{
-                    delay: idx * 0.15,
-                    type: 'spring',
-                    stiffness: 300,
-                    damping: 24
-                  }}
+                  variants={cardVariants}
+                  initial="initial"
+                  animate="animate"
+                  transition={getCardTransition(idx)}
                 >
                   <HeroCard
                     product={product}
                     onClick={() => handleProductClick(product)}
-                    priority={idx === 0}
+                    priority={idx < 2}
                     onAddToCart={(e) => handleQuickAdd(product, e)}
                     discountedPrice={priceData?.hasDiscount ? priceData.price : undefined}
                     originalPrice={priceData?.originalPrice ?? undefined}
@@ -235,14 +267,10 @@ export function MenuGrid({
               return (
                 <motion.div
                   key={product.id}
-                  initial={{ opacity: 0, x: -30 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{
-                    delay: 0.3 + idx * 0.06,
-                    type: 'spring',
-                    stiffness: 260,
-                    damping: 20
-                  }}
+                  variants={compactCardVariants}
+                  initial="initial"
+                  animate="animate"
+                  transition={getCompactCardTransition(idx)}
                 >
                   <CompactCard
                     product={product}
@@ -275,3 +303,6 @@ export function MenuGrid({
     </>
   );
 }
+
+// ⚡ PERF: Export memoized version to prevent unnecessary re-renders
+export const MenuGrid = memo(MenuGridComponent);

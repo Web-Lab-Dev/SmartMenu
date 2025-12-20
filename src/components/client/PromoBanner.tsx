@@ -5,7 +5,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Clock, Sparkles } from 'lucide-react';
 import type { Campaign } from '@/types/schema';
@@ -22,8 +22,9 @@ interface PromoBannerProps {
  * - Promotion message
  * - Countdown if ending in < 1 hour
  * - Close button (hides until page refresh)
+ * - Memoized for performance
  */
-export function PromoBanner({ campaign, timeRemaining, onClose }: PromoBannerProps) {
+function PromoBannerComponent({ campaign, timeRemaining, onClose }: PromoBannerProps) {
   const [isClosed, setIsClosed] = useState(false);
   const [countdown, setCountdown] = useState(timeRemaining || 0);
 
@@ -134,3 +135,6 @@ export function PromoBanner({ campaign, timeRemaining, onClose }: PromoBannerPro
     </AnimatePresence>
   );
 }
+
+// ⚡ PERF: Export memoized version to prevent unnecessary re-renders
+export const PromoBanner = memo(PromoBannerComponent);

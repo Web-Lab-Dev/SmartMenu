@@ -5,7 +5,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo } from 'react';
 import { Drawer } from 'vaul';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
@@ -27,8 +27,9 @@ interface ProductDrawerProps {
  * - Allergens
  * - Options selection
  * - Sticky "Add to Cart" button at bottom
+ * - Memoized for performance
  */
-export function ProductDrawer({ product, isOpen, onClose }: ProductDrawerProps) {
+function ProductDrawerComponent({ product, isOpen, onClose }: ProductDrawerProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const { addItem } = useCartStore();
@@ -318,3 +319,6 @@ export function ProductDrawer({ product, isOpen, onClose }: ProductDrawerProps) 
     </Drawer.Root>
   );
 }
+
+// ⚡ PERF: Export memoized version to prevent re-renders when drawer is closed
+export const ProductDrawer = memo(ProductDrawerComponent);
