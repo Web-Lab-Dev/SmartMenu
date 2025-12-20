@@ -109,12 +109,20 @@ export function MenuGrid({
   const handleQuickAdd = useCallback((product: Product, e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent opening drawer
     try {
-      addItem(product, 1);
+      // Get promo price if active
+      const priceData = getProductPrice?.(product);
+
+      // Create product with promo price if applicable
+      const productWithPrice: Product = priceData?.hasDiscount
+        ? { ...product, price: priceData.price }
+        : product;
+
+      addItem(productWithPrice, 1);
       toast.success(`${product.name} ajouté au panier`);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Erreur');
     }
-  }, [addItem]);
+  }, [addItem, getProductPrice]);
 
   const handleCloseDrawer = useCallback(() => {
     setIsDrawerOpen(false);

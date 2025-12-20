@@ -14,6 +14,9 @@ import { APP_CONFIG, ERROR_MESSAGES } from './constants';
 
 export interface CartItem extends OrderItem {
   product: Product; // Full product data for UI
+  // Promo tracking (optional)
+  originalPrice?: number; // Price before promo discount
+  wasDiscounted?: boolean; // True if item was added during active promo
 }
 
 interface AppliedCoupon {
