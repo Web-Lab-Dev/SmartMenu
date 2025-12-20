@@ -69,7 +69,7 @@ export function TimedPromotionForm({
   useEffect(() => {
     const loadCategories = async () => {
       try {
-        const data = await CategoryService.getByRestaurant(restaurantId);
+        const data = await CategoryService.getRestaurantCategories(restaurantId);
         setCategories(data);
       } catch (error) {
         logger.error('[TimedPromotionForm] Failed to load categories:', error);

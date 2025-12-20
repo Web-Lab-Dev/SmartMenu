@@ -37,6 +37,56 @@
 - ✅ Quick-add uses promo price
 - ✅ Cart stores discounted prices
 
+## ✅ Admin Interface Complete
+
+### 3. Admin: TimedPromotionForm Component
+**Status:** ✅ Complete
+**Location:** `src/components/admin/TimedPromotionForm.tsx`
+
+**Features:**
+- ✅ Switch between "Événement Unique" and "Happy Hour Récurrent"
+- ✅ Date range picker for one-shot events
+- ✅ Day of week selector (7 buttons) for recurring
+- ✅ Time range inputs (startTime, endTime) with validation
+- ✅ Discount type selector (percentage/fixed)
+- ✅ Category multi-select with restaurant categories
+- ✅ Banner text input with live preview
+- ✅ Active toggle
+- ✅ Form validation with clear error messages
+- ✅ Auto-generated banner text as placeholder
+
+### 4. Marketing Page Update
+**Status:** ✅ Complete
+**Location:** `src/app/admin/marketing/page.tsx`
+
+**Features:**
+- ✅ Two-tab navigation (Lottery vs Timed Promotions)
+- ✅ Badge count on each tab
+- ✅ Separate empty states per tab
+- ✅ Different campaign cards based on type
+- ✅ Timed promotions show: Type, Schedule, Discount
+- ✅ Lottery campaigns show: Win %, Validity, Reward
+- ✅ Conditional form rendering (CampaignModal vs TimedPromotionForm)
+
+### 5. CampaignService Update
+**Status:** ✅ Complete
+**Location:** `src/services/CampaignService.ts`
+
+**Added Methods:**
+```typescript
+static async createTimedPromotion(data: { ... }): Promise<string>
+static async updateTimedPromotion(campaignId: string, data: { ... }): Promise<void>
+```
+
+**Validation:**
+- ✅ Name required and trimmed
+- ✅ Date validation (end after start)
+- ✅ Time validation (end after start)
+- ✅ Day selection required for recurring
+- ✅ Discount value positive
+- ✅ Percentage max 100%
+- ✅ Banner text required
+
 ## ⏳ What Still Needs To Be Done
 
 ### 1. ProductDrawer (`src/components/menu/ProductDrawer.tsx`)
@@ -61,97 +111,6 @@ interface ProductDrawerProps {
 - If `hasActivePromo`, show info banner in cart
 - Display: "🔥 Happy Hour actif - Économies appliquées"
 - Optional: Show total savings amount
-
-### 3. Admin: TimedPromotionForm Component
-**Status:** Not started
-**Location:** Create `src/components/admin/TimedPromotionForm.tsx`
-
-**Required Fields:**
-```typescript
-interface FormData {
-  name: string;
-  recurrence: 'one_shot' | 'recurring';
-
-  // One-shot
-  startDate?: Date;
-  endDate?: Date;
-
-  // Recurring
-  daysOfWeek?: number[]; // Multi-select: [0-6]
-  startTime?: string; // "17:00"
-  endTime?: string; // "20:00"
-
-  discount: {
-    type: 'percentage' | 'fixed';
-    value: number;
-  };
-
-  targetCategories: string[]; // Multi-select categories
-  bannerText: string; // Preview as you type
-  isActive: boolean;
-}
-```
-
-**UI Structure:**
-1. Switch: "Événement Unique" vs "Happy Hour Récurrent"
-2. If one-shot: Date range picker (startDate, endDate)
-3. If recurring: Day selector + Time range
-4. Category multi-select (checkboxes)
-5. Discount type (radio) + value (input)
-6. Banner text (input with live preview)
-7. Active toggle
-
-### 4. Marketing Page Update (`src/app/admin/marketing/page.tsx`)
-**Status:** Needs two sections
-**What to do:**
-
-```tsx
-export default function MarketingPage() {
-  const [activeTab, setActiveTab] = useState<'lottery' | 'timed'>('lottery');
-
-  return (
-    <AdminPageWrapper>
-      {/* Tabs */}
-      <div className="flex gap-4 border-b">
-        <button onClick={() => setActiveTab('lottery')}>
-          Campagnes Tombola
-        </button>
-        <button onClick={() => setActiveTab('timed')}>
-          Promotions & Happy Hour
-        </button>
-      </div>
-
-      {/* Content */}
-      {activeTab === 'lottery' ? (
-        <LotteryCampaignsList /> // Existing code
-      ) : (
-        <TimedPromotionsList /> // New component
-      )}
-    </AdminPageWrapper>
-  );
-}
-```
-
-### 5. CampaignService Update
-**Status:** Partially done
-**What to add:**
-
-```typescript
-// In src/services/CampaignService.ts
-static async createTimedPromotion(data: {
-  restaurantId: string;
-  name: string;
-  recurrence: RecurrenceType;
-  rules: TimedPromotionRules;
-  discount: DiscountConfig;
-  targetCategories: string[];
-  bannerText: string;
-  isActive?: boolean;
-}): Promise<string> {
-  // Validate
-  // Create with type: 'timed_promotion'
-}
-```
 
 ## 📝 Testing Checklist
 
