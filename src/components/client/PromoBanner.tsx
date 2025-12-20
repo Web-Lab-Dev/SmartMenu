@@ -28,7 +28,7 @@ function PromoBannerComponent({ campaign, timeRemaining, onClose }: PromoBannerP
   const [isClosed, setIsClosed] = useState(false);
   const [countdown, setCountdown] = useState(timeRemaining || 0);
 
-  // Update countdown every second if ending soon
+  // ⚡ PERF: Update countdown with requestAnimationFrame instead of setInterval
   useEffect(() => {
     if (!timeRemaining || timeRemaining > 3600000) {
       // Not ending soon (> 1 hour)
@@ -37,18 +37,41 @@ function PromoBannerComponent({ campaign, timeRemaining, onClose }: PromoBannerP
 
     setCountdown(timeRemaining);
 
-    const interval = setInterval(() => {
-      setCountdown((prev) => {
-        const next = prev - 1000;
-        if (next <= 0) {
-          clearInterval(interval);
-          return 0;
-        }
-        return next;
-      });
-    }, 1000);
+    let rafId: number;
+    let lastUpdate = Date.now();
 
-    return () => clearInterval(interval);
+    const updateCountdown = () => {
+      const now = Date.now();
+      const elapsed = now - lastUpdate;
+
+      // Update every ~1000ms
+      if (elapsed >= 1000) {
+        lastUpdate = now;
+        setCountdown((prev) => {
+          const next = prev - elapsed;
+          if (next <= 0) {
+            return 0;
+          }
+          return next;
+        });
+      }
+
+      // Schedule next frame if countdown not finished
+      setCountdown((prev) => {
+        if (prev > 0) {
+          rafId = requestAnimationFrame(updateCountdown);
+        }
+        return prev;
+      });
+    };
+
+    rafId = requestAnimationFrame(updateCountdown);
+
+    return () => {
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+      }
+    };
   }, [timeRemaining]);
 
   const handleClose = () => {

@@ -9,7 +9,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { useCartStore } from '@/lib/store';
+import { useCartStore, selectCartItems } from '@/lib/store';
 import { showUpsellToast } from '@/components/client/UpsellToast';
 import type { Product } from '@/types/schema';
 
@@ -32,9 +32,13 @@ interface CartObserverProps {
  * 2. Debounce for 3 seconds after last change
  * 3. Call AI upsell API with cart and menu context
  * 4. Show custom toast with suggestion
+ *
+ * ⚡ PERF: Uses Zustand selectors to prevent unnecessary re-renders
  */
 export function CartObserver({ products }: CartObserverProps) {
-  const { items, restaurantId } = useCartStore();
+  // ⚡ PERF: Use selectors to only subscribe to needed state
+  const items = useCartStore(selectCartItems);
+  const restaurantId = useCartStore((state) => state.restaurantId);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const lastCartLengthRef = useRef(0);
 

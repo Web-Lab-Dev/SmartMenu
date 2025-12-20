@@ -6,7 +6,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Drawer } from 'vaul';
 import { Trash2, Plus, Minus, ShoppingBag, Loader2, Ticket, X } from 'lucide-react';
 import { toast } from 'sonner';
-import { useCartStore } from '@/lib/store';
+import {
+  useCartStore,
+  selectCartItems,
+  selectCartSubtotal,
+  selectCartTotal,
+  selectAppliedCoupon,
+} from '@/lib/store';
 import type { CartItem } from '@/lib/store';
 import { OrderService } from '@/services/OrderService';
 import { CampaignService } from '@/services/CampaignService';
@@ -34,17 +40,18 @@ export function CartDrawer({
   tableLabelString,
   customerSessionId,
 }: CartDrawerProps) {
-  const {
-    items,
-    updateQuantity,
-    clearCart,
-    getSubtotal,
-    getDiscountAmount,
-    getTotalAmount,
-    appliedCoupon,
-    applyCoupon,
-    removeCoupon,
-  } = useCartStore();
+  // ⚡ PERF: Use selectors to only subscribe to needed state
+  const items = useCartStore(selectCartItems);
+  const appliedCoupon = useCartStore(selectAppliedCoupon);
+  const subtotal = useCartStore(selectCartSubtotal);
+  const totalAmount = useCartStore(selectCartTotal);
+
+  // Get actions (these don't cause re-renders on state changes)
+  const updateQuantity = useCartStore((state) => state.updateQuantity);
+  const clearCart = useCartStore((state) => state.clearCart);
+  const getDiscountAmount = useCartStore((state) => state.getDiscountAmount);
+  const applyCoupon = useCartStore((state) => state.applyCoupon);
+  const removeCoupon = useCartStore((state) => state.removeCoupon);
 
   const [customerNote, setCustomerNote] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -60,9 +67,7 @@ export function CartDrawer({
   const [showInstructions, setShowInstructions] = useState(false);
   const [showPromoCode, setShowPromoCode] = useState(false);
 
-  const subtotal = getSubtotal();
   const discountAmount = getDiscountAmount();
-  const totalAmount = getTotalAmount();
   const isEmpty = items.length === 0;
 
   // Handle quantity change with confirmation for deletion

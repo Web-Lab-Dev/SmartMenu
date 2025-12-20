@@ -367,6 +367,61 @@ export const useCartStore = create<CartStore>()(
 );
 
 // ========================================
+// Cart Store Selectors (Performance Optimization)
+// ========================================
+// ⚡ PERF: Use these selectors to prevent unnecessary re-renders
+// Instead of: const { items, getTotalItems } = useCartStore()
+// Use: const items = useCartStore(selectCartItems)
+
+/**
+ * Selector: Get only cart items
+ * Use when you only need items array
+ */
+export const selectCartItems = (state: CartStore) => state.items;
+
+/**
+ * Selector: Get only total item count
+ * Use when you only need the count
+ */
+export const selectCartCount = (state: CartStore) => state.getTotalItems();
+
+/**
+ * Selector: Get only subtotal
+ * Use when you only need subtotal amount
+ */
+export const selectCartSubtotal = (state: CartStore) => state.getSubtotal();
+
+/**
+ * Selector: Get only total amount
+ * Use when you only need final total
+ */
+export const selectCartTotal = (state: CartStore) => state.getTotalAmount();
+
+/**
+ * Selector: Get only applied coupon
+ * Use when you only need coupon info
+ */
+export const selectAppliedCoupon = (state: CartStore) => state.appliedCoupon;
+
+/**
+ * Selector: Get only addItem action
+ * Use when you only need to add items
+ */
+export const selectAddToCart = (state: CartStore) => state.addItem;
+
+/**
+ * Selector: Get only removeItem action
+ * Use when you only need to remove items
+ */
+export const selectRemoveFromCart = (state: CartStore) => state.removeItem;
+
+/**
+ * Selector: Check if cart is empty
+ * Use for conditional rendering
+ */
+export const selectIsCartEmpty = (state: CartStore) => state.items.length === 0;
+
+// ========================================
 // Auth Store (For admin dashboard)
 // ========================================
 
