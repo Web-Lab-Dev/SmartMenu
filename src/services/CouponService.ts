@@ -129,7 +129,7 @@ export class CouponService {
     // 4. User won! Generate coupon
     const code = this.generateCode();
     const validUntil = new Date();
-    validUntil.setDate(validUntil.getDate() + campaign.validityDays);
+    validUntil.setDate(validUntil.getDate() + (campaign.validityDays ?? 7));
 
     const db = getDb();
     const couponsRef = collection(db, COLLECTIONS.COUPONS);
@@ -139,9 +139,9 @@ export class CouponService {
       campaignId,
       code,
       status: 'active' as const,
-      discountType: campaign.rewardType,
-      discountValue: campaign.rewardValue,
-      discountDescription: campaign.rewardDescription,
+      discountType: campaign.rewardType!,
+      discountValue: campaign.rewardValue!,
+      discountDescription: campaign.rewardDescription!,
       deviceId,
       createdAt: serverTimestamp(),
       validUntil,
@@ -156,9 +156,9 @@ export class CouponService {
       campaignId,
       code,
       status: 'active',
-      discountType: campaign.rewardType,
-      discountValue: campaign.rewardValue,
-      discountDescription: campaign.rewardDescription,
+      discountType: campaign.rewardType!,
+      discountValue: campaign.rewardValue!,
+      discountDescription: campaign.rewardDescription!,
       deviceId,
       createdAt: new Date(),
       validUntil,
@@ -167,7 +167,7 @@ export class CouponService {
     return {
       won: true,
       coupon,
-      message: `Félicitations ! Vous avez gagné : ${campaign.rewardDescription}`,
+      message: `Félicitations ! Vous avez gagné : ${campaign.rewardDescription!}`,
     };
   }
 
